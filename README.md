@@ -20,8 +20,8 @@ Ahora es un programa **autónomo**:
 
 | Dato | Valor |
 |---|---|
-| Usuario inicial | `admin` |
-| Contraseña inicial | `admin` |
+| Usuario inicial | `Programador` (el de tu base anterior) |
+| Contraseña inicial | `123456789` |
 | Base de datos | `%LocalAppData%\Diegod\diegod.db` |
 | Registro de errores | `%LocalAppData%\Diegod\errores.log` |
 
@@ -52,10 +52,7 @@ instalador y el zip como artefactos; al subir una etiqueta `vX.Y.Z` los adjunta 
 
 ## Notas y límites conocidos
 
-- El esquema se **dedujo de las consultas del código**; las dos vistas (`vwStockCantidad`,
-  `vwUltimoMovimiento`) se reconstruyeron con la lógica evidente (ingresos − egresos no anulados; último
-  movimiento válido con precio).
-- Se cargan las 24 jurisdicciones y las localidades principales de cada una, **no** el padrón completo.
-  Se pueden agregar filas a la tabla `Localidades`.
+- El esquema y las vistas se tomaron del script `Diegodd.sql` de la base original.
+- Provincias (25) y localidades (2.382) vienen de la base original (`Datos/geografia.sql`).
 - **No se migran datos** de una base SQL Server anterior; la base nueva arranca vacía.
 - `LIKE` en SQLite ignora mayúsculas/minúsculas solo para letras ASCII (no para tildes).

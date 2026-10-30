@@ -24,6 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Datos\geografia.sql" LogicalName="geografia.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Captura-de-pantalla-2025-09-01-183211.ico" />
   </ItemGroup>
 

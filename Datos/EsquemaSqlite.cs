@@ -8,10 +8,16 @@ namespace Diegod.Datos
     internal static class EsquemaSqlite
     {
         public const string Tablas = """
+CREATE TABLE IF NOT EXISTS Tipo_Usuario (
+    ID   INTEGER PRIMARY KEY AUTOINCREMENT,
+    Tipo TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS Usuario (
-    ID      INTEGER PRIMARY KEY AUTOINCREMENT,
-    Usuario TEXT NOT NULL,
-    Contra  TEXT NOT NULL
+    Id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    TipoUsuario_ID INT NOT NULL DEFAULT 1,
+    Usuario        TEXT NOT NULL,
+    Contra         TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Tipo (
@@ -41,8 +47,8 @@ CREATE TABLE IF NOT EXISTS Clientes (
     Cuit         TEXT,
     Observacion  TEXT,
     Localidad_ID INT,
-    Empresa      TEXT,
-    TipoId       INT DEFAULT 1
+    TipoId       INT,
+    Empresa      TEXT
 );
 
 CREATE TABLE IF NOT EXISTS Empleados (
@@ -59,8 +65,8 @@ CREATE TABLE IF NOT EXISTS Empleados (
     Activo             BOOLEAN NOT NULL DEFAULT 1,
     Observacion        TEXT,
     Localidad_ID       INT,
-    Empresa            TEXT,
-    TipoId             INT DEFAULT 2
+    TipoId             INT,
+    Empresa            TEXT NOT NULL DEFAULT 'Andres Dibiasi'
 );
 
 CREATE TABLE IF NOT EXISTS Proveedor (
@@ -73,7 +79,7 @@ CREATE TABLE IF NOT EXISTS Proveedor (
     Direccion     TEXT,
     Localidad_ID  INT,
     Observaciones TEXT,
-    TipoId        INT DEFAULT 3
+    TipoId        INT
 );
 
 CREATE TABLE IF NOT EXISTS Prestamista (
@@ -114,6 +120,7 @@ CREATE TABLE IF NOT EXISTS MovimientoStock (
     Destino          TEXT,
     Precio_Total     DECIMAL DEFAULT 0,
     Proveedor_ID     INT,
+    Fecha_Vencimiento DATETIME,
     Cambio           BOOLEAN NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS IX_Mov_Stock ON MovimientoStock(Stock_ID);
@@ -129,7 +136,8 @@ CREATE TABLE IF NOT EXISTS Trabajos (
     Fecha_Inicio     DATETIME,
     Fecha_Fin        DATETIME,
     Anulado          BOOLEAN NOT NULL DEFAULT 0,
-    Cliente_ID       INT
+    Cliente_ID       INT,
+    Fecha_Vencimiento DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS Empleados_Trabajo (
@@ -138,6 +146,7 @@ CREATE TABLE IF NOT EXISTS Empleados_Trabajo (
     Trabajo_ID    INT NOT NULL,
     Valor_Trabajo INT,
     Observaciones TEXT,
+    Fecha_Vencimiento DATETIME,
     Anulado       BOOLEAN NOT NULL DEFAULT 0
 );
 
@@ -178,43 +187,45 @@ CREATE TABLE IF NOT EXISTS Historial (
 CREATE INDEX IF NOT EXISTS IX_Historial_Pendiente ON Historial(Pendiente_ID);
 """;
 
-        // Cantidad disponible = ingresos - egresos de movimientos no anulados.
-        // Ultimo movimiento = el movimiento valido mas reciente de cada producto
-        // (los "cambios" no tienen precio y se ignoran).
+        // Vistas originales de la base SQL Server (script Diegodd.sql).
+        // Se agrega Precio_Total a vwUltimoMovimiento porque StockFunciones.BuscarStock lo pide.
         public const string Vistas = """
 DROP VIEW IF EXISTS vwStockCantidad;
 CREATE VIEW vwStockCantidad AS
-SELECT m.Stock_ID AS Stock_ID,
-       SUM(CASE WHEN m.Tipo_Movimiento = 1 THEN m.Cantidad ELSE -m.Cantidad END) AS CantidadTotal
-FROM MovimientoStock m
-WHERE m.Anulado = 0
-GROUP BY m.Stock_ID;
+SELECT Stock_ID,
+       SUM(CASE WHEN Tipo_Movimiento = 1 THEN Cantidad ELSE -Cantidad END) AS CantidadTotal
+FROM MovimientoStock
+WHERE Anulado = 0
+GROUP BY Stock_ID;
 
 DROP VIEW IF EXISTS vwUltimoMovimiento;
 CREATE VIEW vwUltimoMovimiento AS
-SELECT m.Stock_ID          AS Stock_ID,
-       m.Precio_Unitario   AS Precio_Unitario,
-       m.Precio_Total      AS Precio_Total,
-       m.Fecha_Movimiento  AS Fecha_Movimiento
-FROM MovimientoStock m
-WHERE m.Anulado = 0
-  AND m.Cambio = 0
-  AND m.ID = (SELECT m2.ID
-                FROM MovimientoStock m2
-               WHERE m2.Stock_ID = m.Stock_ID
-                 AND m2.Anulado = 0
-                 AND m2.Cambio = 0
-               ORDER BY m2.Fecha_Movimiento DESC, m2.ID DESC
-               LIMIT 1);
+SELECT ms.Stock_ID,
+       ms.Precio_Unitario,
+       ms.Precio_Total,
+       ms.Fecha_Movimiento
+FROM MovimientoStock AS ms
+INNER JOIN (SELECT Stock_ID, MAX(ID) AS MaxID
+              FROM MovimientoStock
+             WHERE Cambio = 0
+             GROUP BY Stock_ID) AS sub
+        ON ms.Stock_ID = sub.Stock_ID
+       AND ms.ID       = sub.MaxID;
 """;
 
         public const string DatosIniciales = """
 INSERT INTO Tipo (TipoId, Nombre)
-SELECT * FROM (SELECT 1, 'Cliente' UNION ALL SELECT 2, 'Empleado' UNION ALL SELECT 3, 'Proveedor' UNION ALL SELECT 4, 'Prestamista')
+SELECT * FROM (SELECT 1, 'Cliente' UNION ALL SELECT 2, 'Empleado' UNION ALL SELECT 3, 'Proveedor'
+               UNION ALL SELECT 4, 'Prestamista' UNION ALL SELECT 5, 'Persona'
+               UNION ALL SELECT 6, 'Empresa' UNION ALL SELECT 7, 'Externo')
 WHERE NOT EXISTS (SELECT 1 FROM Tipo);
 
-INSERT INTO Usuario (Usuario, Contra)
-SELECT 'admin', 'admin'
+INSERT INTO Tipo_Usuario (ID, Tipo)
+SELECT 1, 'Admin'
+WHERE NOT EXISTS (SELECT 1 FROM Tipo_Usuario);
+
+INSERT INTO Usuario (TipoUsuario_ID, Usuario, Contra)
+SELECT 1, 'Programador', '123456789'
 WHERE NOT EXISTS (SELECT 1 FROM Usuario);
 """;
     }

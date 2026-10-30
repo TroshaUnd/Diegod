@@ -100,28 +100,12 @@ namespace Diegod
                 if (Convert.ToInt64(cuenta.ExecuteScalar()) > 0) return;
             }
 
-            foreach (var (provincia, localidades) in SemillaGeografica.ProvinciasYLocalidades)
+            // Provincias y localidades de la base original (recurso incrustado geografia.sql).
+            using (Stream s = typeof(BaseDatos).Assembly.GetManifestResourceStream("geografia.sql")
+                   ?? throw new InvalidOperationException("Falta el recurso geografia.sql"))
+            using (var lector = new StreamReader(s, System.Text.Encoding.UTF8))
             {
-                long idProvincia;
-                using (var ins = cn.CreateCommand())
-                {
-                    ins.Transaction = tran;
-                    ins.CommandText = "INSERT INTO Provincias (provincia) VALUES ($p); SELECT last_insert_rowid();";
-                    ins.Parameters.AddWithValue("$p", provincia);
-                    idProvincia = Convert.ToInt64(ins.ExecuteScalar());
-                }
-
-                foreach (string loc in localidades)
-                {
-                    using (var insL = cn.CreateCommand())
-                    {
-                        insL.Transaction = tran;
-                        insL.CommandText = "INSERT INTO Localidades (localidad, id_provincia) VALUES ($l, $p)";
-                        insL.Parameters.AddWithValue("$l", loc);
-                        insL.Parameters.AddWithValue("$p", idProvincia);
-                        insL.ExecuteNonQuery();
-                    }
-                }
+                Ejecutar(cn, tran, lector.ReadToEnd());
             }
         }
 
