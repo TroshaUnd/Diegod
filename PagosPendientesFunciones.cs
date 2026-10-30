@@ -1,4 +1,4 @@
-﻿using System.Data.SqlClient;
+﻿using Diegod.Datos;
 using System.Data;
 
 namespace Diegod
@@ -44,22 +44,22 @@ SELECT
         (SELECT t.Nombre   FROM MovimientoStock ms INNER JOIN Proveedor pr ON ms.Proveedor_ID = pr.ID INNER JOIN Tipo t ON pr.TipoId     = t.TipoId WHERE ms.ID        = pp.MovimientoStockID),
         (SELECT t.Nombre   FROM Credito c INNER JOIN Prestamista pt ON c.Prestamista_ID  = pt.ID INNER JOIN Tipo t ON pt.TipoId     = t.TipoId WHERE c.ID         = pp.CreditoID)
     )                     AS Tipo,
-    '$' + COALESCE(
-        (SELECT CAST(tr.Presupuesto   AS nvarchar(50)) FROM Trabajos        tr WHERE tr.ID        = pp.TrabajoID),
-        (SELECT CAST(et.Valor_Trabajo AS nvarchar(50)) FROM Empleados_Trabajo et WHERE et.ID        = pp.EmpleadoTrabajoID),
-        (SELECT CAST(ms.Precio_Total  AS nvarchar(50)) FROM MovimientoStock  ms WHERE ms.ID        = pp.MovimientoStockID),
-        (SELECT CAST(c.Monto_Credito  AS nvarchar(50)) FROM Credito         c  WHERE c.ID        = pp.CreditoID),
+    '$' || COALESCE(
+        (SELECT CAST(tr.Presupuesto   AS TEXT) FROM Trabajos        tr WHERE tr.ID        = pp.TrabajoID),
+        (SELECT CAST(et.Valor_Trabajo AS TEXT) FROM Empleados_Trabajo et WHERE et.ID        = pp.EmpleadoTrabajoID),
+        (SELECT fmt_txt(ms.Precio_Total) FROM MovimientoStock  ms WHERE ms.ID        = pp.MovimientoStockID),
+        (SELECT fmt_txt(c.Monto_Credito) FROM Credito         c  WHERE c.ID        = pp.CreditoID),
         '0'
     )                     AS Deuda,
-    '$' + CAST(
-        ISNULL(
+    '$' || fmt_txt(
+        IFNULL(
             (SELECT SUM(h.Monto)
                FROM Historial h
               WHERE h.Pendiente_ID = pp.ID
                 AND h.Anulado      = 0
               GROUP BY h.Pendiente_ID),
             0
-        ) AS nvarchar(50)
+        )
     )                     AS Pagado,
     COALESCE(
         (SELECT tr.Fecha_Inicio     FROM Trabajos        tr WHERE tr.ID        = pp.TrabajoID),

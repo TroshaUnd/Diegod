@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Windows.Forms;
 
 namespace Diegod
@@ -18,7 +18,7 @@ namespace Diegod
                     p.Nombre   AS Nombre,
                     p.Apellido AS Apellido,
                     p.Empresa  AS Empresa,
-                    FORMAT(c.Monto_Credito, 'C', 'es-AR') AS Monto_Credito,
+                    fmt_moneda(c.Monto_Credito) AS Monto_Credito,
                     c.Fecha_Credito,
                     c.Fecha_Vencimiento,
                     c.Observacion
@@ -44,7 +44,7 @@ namespace Diegod
                     p.Nombre   AS Nombre,
                     p.Apellido AS Apellido,
                     p.Empresa  AS Empresa,
-                    FORMAT(c.Monto_Credito, 'C', 'es-AR') AS Monto_Credito,
+                    fmt_moneda(c.Monto_Credito) AS Monto_Credito,
                     c.Fecha_Credito,
                     c.Fecha_Vencimiento,
                     c.Observacion
@@ -72,7 +72,7 @@ namespace Diegod
                     p.Nombre   AS Nombre,
                     p.Apellido AS Apellido,
                     p.Empresa  AS Empresa,
-                    FORMAT(c.Monto_Credito, 'C', 'es-AR') AS Monto_Credito,
+                    fmt_moneda(c.Monto_Credito) AS Monto_Credito,
                     c.Fecha_Credito,
                     c.Fecha_Vencimiento,
                     c.Observacion
@@ -100,13 +100,13 @@ namespace Diegod
                     p.Nombre   AS Nombre,
                     p.Apellido AS Apellido,
                     p.Empresa  AS Empresa,
-                    FORMAT(c.Monto_Credito, 'C', 'es-AR') AS Monto_Credito,
+                    fmt_moneda(c.Monto_Credito) AS Monto_Credito,
                     c.Fecha_Credito,
                     c.Fecha_Vencimiento,
                     c.Observacion
                 FROM Credito c
                 LEFT JOIN Prestamista p ON c.Prestamista_ID = p.ID
-                WHERE CAST(c.Fecha_Credito AS DATE) = @Fecha
+                WHERE date(c.Fecha_Credito) = date(@Fecha)
                 ORDER BY c.ID DESC;", conexion))
             {
                 command.Parameters.AddWithValue("@Fecha", fecha.Date);
@@ -129,7 +129,7 @@ namespace Diegod
                             p.Nombre      AS Nombre,
                             p.Apellido    AS Apellido,
                             p.Empresa     AS Empresa,
-                            FORMAT(c.Monto_Credito, 'C', 'es-AR') AS Monto_Credito,
+                            fmt_moneda(c.Monto_Credito) AS Monto_Credito,
                             c.Fecha_Credito,
                             c.Fecha_Vencimiento,
                             c.Observacion
@@ -144,7 +144,7 @@ namespace Diegod
                         sql += " AND (p.Nombre LIKE @Patron OR p.Apellido LIKE @Patron)";
 
                     if (fecha.HasValue)
-                        sql += " AND CAST(c.Fecha_Credito AS DATE) = @Fecha";
+                        sql += " AND date(c.Fecha_Credito) = date(@Fecha)";
 
                     sql += " ORDER BY c.ID DESC;";
 
@@ -254,7 +254,7 @@ namespace Diegod
                             (Prestamista_ID, Monto_Credito, Fecha_Credito, Fecha_Vencimiento, Observacion, Anulado)
                         VALUES
                             (@Prestamista_ID, @Monto_Credito, @Fecha_Credito, @Fecha_Vencimiento, @Observacion, @Anulado);
-                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+                        SELECT last_insert_rowid();";
 
                     using (SqlCommand cmd = new SqlCommand(sqlCred, conexion))
                     {

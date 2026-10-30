@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;

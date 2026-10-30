@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Drawing.Printing;
 using System.Globalization;
 using System.Windows.Forms;
@@ -102,7 +102,7 @@ SELECT
     ) AS Tipo,
     -- Fecha y Monto
     h.Fecha_Pago AS FechaPago,
-    '$' + FORMAT(h.Monto, 'N0') AS Monto,
+    '$' || fmt_n0(h.Monto) AS Monto,
     -- Transacción
     CASE
       WHEN EXISTS(SELECT 1 FROM Pagos_Pendientes pp2 JOIN Trabajos t2 ON pp2.TrabajoID = t2.ID WHERE pp2.ID = h.Pendiente_ID) THEN 'Cobrar'

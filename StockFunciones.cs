@@ -1,5 +1,5 @@
 ﻿
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Data;
 
 namespace Diegod

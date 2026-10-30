@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Text;
 using System.Windows.Forms;
 
@@ -18,7 +18,7 @@ namespace Diegod
                     SELECT
                         m.ID,
                         s.Producto AS Stock,
-                        p.Nombre + ' ' + p.Apellido AS Proveedor,
+                        p.Nombre || ' ' || p.Apellido AS Proveedor,
                         m.Cantidad,
                         CASE WHEN m.Tipo_Movimiento = 1 THEN 'Ingreso' ELSE 'Egreso' END AS Movimiento,
                         m.Destino,
@@ -48,7 +48,7 @@ namespace Diegod
         SELECT
             m.ID,
             s.Producto   AS Stock,
-            p.Nombre + ' ' + p.Apellido AS Proveedor,
+            p.Nombre || ' ' || p.Apellido AS Proveedor,
             m.Cantidad,
             CASE WHEN m.Tipo_Movimiento = 1 THEN 'Ingreso' ELSE 'Egreso' END AS Movimiento,
             m.Destino,
@@ -77,7 +77,7 @@ namespace Diegod
         SELECT
             m.ID,
             s.Producto   AS Stock,
-            p.Nombre + ' ' + p.Apellido AS Proveedor,
+            p.Nombre || ' ' || p.Apellido AS Proveedor,
             m.Cantidad,
             CASE WHEN m.Tipo_Movimiento = 1 THEN 'Ingreso' ELSE 'Egreso' END AS Movimiento,
             m.Destino,
@@ -104,7 +104,7 @@ namespace Diegod
             using var cn = BaseDatos.ObtenerConexion();
             using var cmd = new SqlCommand(@"
         SELECT m.ID, s.Producto AS Stock, 
-               p.Nombre + ' ' + p.Apellido AS Proveedor,
+               p.Nombre || ' ' || p.Apellido AS Proveedor,
                m.Cantidad,
                CASE WHEN m.Tipo_Movimiento = 1 THEN 'Ingreso' ELSE 'Egreso' END AS Movimiento,
                m.Destino, m.Fecha_Movimiento,
@@ -127,7 +127,7 @@ namespace Diegod
         SELECT
             m.ID,
             s.Producto   AS Stock,
-            p.Nombre + ' ' + p.Apellido AS Proveedor,
+            p.Nombre || ' ' || p.Apellido AS Proveedor,
             m.Cantidad,
             CASE WHEN m.Tipo_Movimiento = 1 THEN 'Ingreso' ELSE 'Egreso' END AS Movimiento,
             m.Destino,
@@ -139,7 +139,7 @@ namespace Diegod
         FROM MovimientoStock m
         LEFT JOIN Stock     s ON m.Stock_ID     = s.ID
         LEFT JOIN Proveedor p ON m.Proveedor_ID = p.ID
-        WHERE CAST(m.Fecha_Movimiento AS DATE) = @Fecha
+        WHERE date(m.Fecha_Movimiento) = date(@Fecha)
         ORDER BY m.Anulado DESC, m.Fecha_Movimiento DESC;", cn);
     {
                 cmd.Parameters.AddWithValue("@Fecha", fecha.Date);
@@ -166,7 +166,7 @@ namespace Diegod
             SELECT
                 m.ID,
                 s.Producto   AS Stock,
-                p.Nombre + ' ' + p.Apellido AS Proveedor,
+                p.Nombre || ' ' || p.Apellido AS Proveedor,
                 m.Cantidad,
                 CASE WHEN m.Tipo_Movimiento = 1 THEN 'Ingreso' ELSE 'Egreso' END AS Movimiento,
                 m.Destino,
@@ -198,7 +198,7 @@ namespace Diegod
                 }
                 if (fechaMov.HasValue)
                 {
-                    sql.Append(" AND CAST(m.Fecha_Movimiento AS DATE) = @FechaMov");
+                    sql.Append(" AND date(m.Fecha_Movimiento) = date(@FechaMov)");
                     cmd.Parameters.AddWithValue("@FechaMov", fechaMov.Value.Date);
                 }
 
@@ -229,7 +229,7 @@ namespace Diegod
                     (Stock_ID, Fecha_Movimiento, Tipo_Movimiento, Cantidad, Precio_Unitario, Anulado, Destino, Precio_Total, Proveedor_ID, Cambio)
                 VALUES 
                     (@Stock_ID, @Fecha_Movimiento, @Tipo_Movimiento, @Cantidad, @Precio_Unitario, @Anulado, @Destino, @Precio_Total, @Proveedor_ID, @Cambio);
-                SELECT CAST(SCOPE_IDENTITY() AS INT);", conexion))
+                SELECT last_insert_rowid();", conexion))
                     {
                         command.Parameters.AddWithValue("@Stock_ID", movimiento.StockID);
                         command.Parameters.AddWithValue("@Fecha_Movimiento", movimiento.FechaMovimiento);

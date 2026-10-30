@@ -1,5 +1,5 @@
 ﻿// PrestamistaFunciones.cs
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Data;
 
 namespace Diegod
@@ -42,7 +42,7 @@ namespace Diegod
             using (var cmd = new SqlCommand(
                 "SELECT ID, Nombre, Apellido, Email, Telefono, Direccion, Empresa, Observacion " +
                 "FROM Prestamista " +
-                "WHERE Nombre LIKE '%' + @T + '%' OR Apellido LIKE '%' + @T + '%'", conn))
+                "WHERE Nombre LIKE '%' || @T || '%' OR Apellido LIKE '%' || @T || '%'", conn))
             {
                 cmd.Parameters.AddWithValue("@T", termino);
                 using (var adapter = new SqlDataAdapter(cmd))

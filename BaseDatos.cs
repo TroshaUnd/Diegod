@@ -1,150 +1,134 @@
-﻿using System;
-using System.Configuration;
-using System.Data.SqlClient;
+using System;
+using System.IO;
+using Diegod.Datos;
+using Microsoft.Data.Sqlite;
 
 namespace Diegod
 {
+    /// <summary>
+    /// Acceso a la base de datos local (SQLite). El archivo se crea solo la primera vez.
+    ///  - Instalacion normal : %LocalAppData%\Diegod\diegod.db
+    ///  - Modo portable      : si existe el archivo "Diegod.portable" junto al .exe,
+    ///                         se usa la carpeta "Datos" junto al .exe.
+    ///  - Variable de entorno DIEGOD_DB: ruta completa a un archivo .db (opcional).
+    /// </summary>
     public static class BaseDatos
     {
-        private static readonly string DefaultCadena =
-            @"Data Source=DESKTOP-2LRIE6M\SQLEXPRESS;Initial Catalog=Principal;Integrated Security=True;Connect Timeout=30;MultipleActiveResultSets=True;Application Name=DiegodApp;TrustServerCertificate=True";
+        private static readonly object _candado = new object();
+        private static bool _inicializada;
+        private static string _rutaBase;
+        private static string _cadena;
 
-        private static readonly string CadenaConexion;
-
-        static BaseDatos()
+        public static string RutaBaseDatos
         {
-            // 1) Probar todas las cadenas del App.config (si existen)
-            try
+            get { Inicializar(); return _rutaBase; }
+        }
+
+        public static string CarpetaDatos => Path.GetDirectoryName(RutaBaseDatos);
+
+        /// <summary>Crea el archivo y el esquema si hace falta. Es seguro llamarlo varias veces.</summary>
+        public static void Inicializar()
+        {
+            if (_inicializada) return;
+            lock (_candado)
             {
-                var settings = ConfigurationManager.ConnectionStrings;
-                if (settings != null)
+                if (_inicializada) return;
+
+                _rutaBase = ResolverRuta();
+                Directory.CreateDirectory(Path.GetDirectoryName(_rutaBase));
+
+                // Pooling desactivado: cada conexion se cierra de verdad y el archivo queda libre.
+                _cadena = new SqliteConnectionStringBuilder
                 {
-                    foreach (ConnectionStringSettings cs in settings)
+                    DataSource = _rutaBase,
+                    Mode = SqliteOpenMode.ReadWriteCreate,
+                    Pooling = false,
+                    DefaultTimeout = 30
+                }.ToString();
+
+                CrearEsquemaYDatos();
+                _inicializada = true;
+            }
+        }
+
+        private static string ResolverRuta()
+        {
+            string env = Environment.GetEnvironmentVariable("DIEGOD_DB");
+            if (!string.IsNullOrWhiteSpace(env)) return Path.GetFullPath(env);
+
+            string exe = AppContext.BaseDirectory;
+            if (File.Exists(Path.Combine(exe, "Diegod.portable")))
+                return Path.Combine(exe, "Datos", "diegod.db");
+
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return Path.Combine(appData, "Diegod", "diegod.db");
+        }
+
+        private static void CrearEsquemaYDatos()
+        {
+            using (var cn = new SqliteConnection(_cadena))
+            {
+                cn.Open();
+
+                using (var tran = cn.BeginTransaction())
+                {
+                    Ejecutar(cn, tran, EsquemaSqlite.Tablas);
+                    Ejecutar(cn, tran, EsquemaSqlite.Vistas);
+                    Ejecutar(cn, tran, EsquemaSqlite.DatosIniciales);
+                    CargarGeografia(cn, tran);
+                    tran.Commit();
+                }
+            }
+        }
+
+        private static void Ejecutar(SqliteConnection cn, SqliteTransaction tran, string sql)
+        {
+            using (var cmd = cn.CreateCommand())
+            {
+                cmd.Transaction = tran;
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private static void CargarGeografia(SqliteConnection cn, SqliteTransaction tran)
+        {
+            using (var cuenta = cn.CreateCommand())
+            {
+                cuenta.Transaction = tran;
+                cuenta.CommandText = "SELECT COUNT(*) FROM Provincias";
+                if (Convert.ToInt64(cuenta.ExecuteScalar()) > 0) return;
+            }
+
+            foreach (var (provincia, localidades) in SemillaGeografica.ProvinciasYLocalidades)
+            {
+                long idProvincia;
+                using (var ins = cn.CreateCommand())
+                {
+                    ins.Transaction = tran;
+                    ins.CommandText = "INSERT INTO Provincias (provincia) VALUES ($p); SELECT last_insert_rowid();";
+                    ins.Parameters.AddWithValue("$p", provincia);
+                    idProvincia = Convert.ToInt64(ins.ExecuteScalar());
+                }
+
+                foreach (string loc in localidades)
+                {
+                    using (var insL = cn.CreateCommand())
                     {
-                        if (cs == null || string.IsNullOrWhiteSpace(cs.ConnectionString)) continue;
-                        if (ProbarConexionCorta(cs.ConnectionString))
-                        {
-                            CadenaConexion = BuildFullFromExisting(cs.ConnectionString);
-                            return;
-                        }
+                        insL.Transaction = tran;
+                        insL.CommandText = "INSERT INTO Localidades (localidad, id_provincia) VALUES ($l, $p)";
+                        insL.Parameters.AddWithValue("$l", loc);
+                        insL.Parameters.AddWithValue("$p", idProvincia);
+                        insL.ExecuteNonQuery();
                     }
                 }
             }
-            catch
-            {
-                // continuar con la búsqueda automática si algo falla leyendo el config
-            }
-
-            // 2) Probar servidores/instancias comunes
-            string machine = Environment.MachineName ?? "localhost";
-            string[] servidores = new[]
-            {
-                @"DESKTOP-2LRIE6M\SQLEXPRESS",
-                @"localhost\SQLEXPRESS",
-                @".\SQLEXPRESS",
-                $@"{machine}\SQLEXPRESS",
-                @"localhost",
-                @".",
-                machine
-            };
-
-            string[] bases = new[] { "Principal", "master" };
-
-            foreach (var srv in servidores)
-            {
-                foreach (var db in bases)
-                {
-                    // cadena de prueba con timeout corto para no bloquear
-                    string probe = $@"Data Source={srv};Initial Catalog={db};Integrated Security=True;Connect Timeout=3;TrustServerCertificate=True";
-                    if (ProbarConexionCorta(probe))
-                    {
-                        // Si nos conectamos a master, verificar si existe Principal
-                        if (db.Equals("master", StringComparison.OrdinalIgnoreCase))
-                        {
-                            try
-                            {
-                                using (var con = new SqlConnection(probe))
-                                {
-                                    con.Open();
-                                    using (var cmd = new SqlCommand("SELECT database_id FROM sys.databases WHERE name = @name", con))
-                                    {
-                                        cmd.Parameters.AddWithValue("@name", "Principal");
-                                        var obj = cmd.ExecuteScalar();
-                                        if (obj != null && obj != DBNull.Value)
-                                        {
-                                            CadenaConexion = BuildFullConnectionString(srv, "Principal");
-                                            return;
-                                        }
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                                // ignorar y seguir probando
-                            }
-                        }
-                        else
-                        {
-                            // si nos conectamos directo al servidor con la DB solicitada -> usarla
-                            CadenaConexion = BuildFullConnectionString(srv, db);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            // 3) Fallback final
-            CadenaConexion = DefaultCadena;
-        }
-
-        /// <summary>
-        /// Prueba una conexión rápidamente (timeout corto). Devuelve true si puede abrir.
-        /// </summary>
-        private static bool ProbarConexionCorta(string cadena)
-        {
-            try
-            {
-                using (var con = new SqlConnection(cadena))
-                {
-                    con.Open();
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Normaliza/ensambla una cadena completa a partir de servidor y base (para uso definitivo).
-        /// </summary>
-        private static string BuildFullConnectionString(string server, string database)
-        {
-            return $@"Data Source={server};Initial Catalog={database};Integrated Security=True;Connect Timeout=30;MultipleActiveResultSets=True;Application Name=DiegodApp;TrustServerCertificate=True";
-        }
-
-        /// <summary>
-        /// Si la cadena hallada en el config ya es completa, la utiliza tal cual;
-        /// si no tiene ciertos parámetros mínimos, intenta devolverla con los parámetros "amistosos".
-        /// </summary>
-        private static string BuildFullFromExisting(string existing)
-        {
-            // Si la cadena ya contiene Initial Catalog y Data Source, devolverla tal cual
-            if (existing.IndexOf("Data Source=", StringComparison.OrdinalIgnoreCase) >= 0 &&
-                existing.IndexOf("Initial Catalog=", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return existing;
-            }
-
-            // Si no, intentar parsear servidor y base y reconstruir (fallback simple)
-            // No hacemos un parser completo; si falta, devolvemos DefaultCadena
-            return DefaultCadena;
         }
 
         public static SqlConnection ObtenerConexion()
         {
-            var conexion = new SqlConnection(CadenaConexion);
+            Inicializar();
+            var conexion = new SqlConnection(_cadena);
             conexion.Open();
             return conexion;
         }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Diegod.Datos;
 using System.Windows.Forms;
 
 namespace Diegod
@@ -11,15 +11,15 @@ namespace Diegod
         public static int AgregarTrabajo(TrabajoPuente trabajo)
         {
             const string sqlInsertTrabajo = @"
-        INSERT INTO dbo.Trabajos
+        INSERT INTO Trabajos
             (Fecha_Pedido, Trabajo_Realizar, Presupuesto, Observacion, Completado,
              Lugar_Trabajo, Fecha_Inicio, Fecha_Fin, Anulado, Cliente_ID)
         VALUES
             (@F, @T, @P, @O, @C, @L, @I, @F2, @A, @CL);
-        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+        SELECT last_insert_rowid();";
 
             const string sqlInsertPago = @"
-        INSERT INTO dbo.Pagos_Pendientes
+        INSERT INTO Pagos_Pendientes
             (TrabajoID)
         VALUES
             (@TrabajoID);";
@@ -68,8 +68,8 @@ namespace Diegod
         vt.Anulado,                 -- ← importante traer este bit
         v.Nombre,
         v.Patente
-      FROM dbo.Vehiculos_Trabajo vt
-      JOIN dbo.Vehiculos v 
+      FROM Vehiculos_Trabajo vt
+      JOIN Vehiculos v 
         ON vt.Vehiculo_ID = v.ID
      WHERE vt.Trabajo_ID = @Trab
        AND v.Activo = 1;
@@ -86,7 +86,7 @@ namespace Diegod
         public static int ActualizarAnuladoVehiculoTrabajo(int id, bool anulado)
         {
             const string sql = @"
-    UPDATE dbo.Vehiculos_Trabajo
+    UPDATE Vehiculos_Trabajo
        SET Anulado = @A
      WHERE ID      = @ID;
     ";
@@ -111,8 +111,8 @@ namespace Diegod
         e.Apellido,
         et.Valor_Trabajo,
         et.Observaciones
-      FROM dbo.Empleados_Trabajo et
-      JOIN dbo.Empleados e 
+      FROM Empleados_Trabajo et
+      JOIN Empleados e 
         ON et.Empleado_ID = e.ID
      WHERE et.Trabajo_ID = @Trab
        AND e.Activo = 1;
@@ -129,7 +129,7 @@ namespace Diegod
         public static int ActualizarAnuladoEmpleadoTrabajo(int id, bool anulado)
         {
             const string sql = @"
-    UPDATE dbo.Empleados_Trabajo
+    UPDATE Empleados_Trabajo
        SET Anulado = @A
      WHERE ID      = @ID;
     ";
@@ -148,7 +148,7 @@ namespace Diegod
             var dt = new DataTable();
             const string sql = @"
         SELECT ID, Nombre, Apellido, Cargo
-          FROM dbo.Empleados
+          FROM Empleados
          WHERE (Nombre LIKE @N OR Apellido LIKE @N)
            AND Activo = 1;                            -- <<-- filtrar activos
     ";
@@ -168,7 +168,7 @@ namespace Diegod
             var dt = new DataTable();
             const string sql = @"
         SELECT ID, Nombre, Patente
-          FROM dbo.Vehiculos
+          FROM Vehiculos
          WHERE Patente LIKE @P
            AND Activo = 1;                            -- <<-- filtrar activos
     ";
@@ -188,7 +188,7 @@ namespace Diegod
             var dt = new DataTable();
             const string sql = @"
         SELECT ID, Nombre, Patente
-          FROM dbo.Vehiculos
+          FROM Vehiculos
          WHERE Nombre LIKE @N
            AND Activo = 1;                            -- <<-- filtrar activos
     ";
@@ -211,7 +211,7 @@ namespace Diegod
         t.ID,
         t.Fecha_Pedido,
         t.Cliente_ID,
-        ISNULL(c.Nombre + ' ' + c.Apellido, '') AS Cliente_Nombre,  -- alias corregido
+        COALESCE(c.Nombre || ' ' || c.Apellido, '') AS Cliente_Nombre,  -- alias corregido
         t.Trabajo_Realizar,
         t.Presupuesto,
         t.Observacion,
@@ -219,8 +219,8 @@ namespace Diegod
         t.Completado,
         t.Fecha_Inicio,
         t.Fecha_Fin
-    FROM dbo.Trabajos t
-    LEFT JOIN dbo.Clientes c 
+    FROM Trabajos t
+    LEFT JOIN Clientes c 
       ON t.Cliente_ID = c.ID
     ORDER BY t.Fecha_Inicio DESC;
     ";
@@ -244,7 +244,7 @@ namespace Diegod
         t.ID,
         t.Fecha_Pedido,
         t.Cliente_ID,
-        ISNULL(c.Nombre + ' ' + c.Apellido, '') AS Cliente_Nombre,  -- alias corregido
+        COALESCE(c.Nombre || ' ' || c.Apellido, '') AS Cliente_Nombre,  -- alias corregido
         t.Trabajo_Realizar,
         t.Presupuesto,
         t.Observacion,
@@ -253,14 +253,14 @@ namespace Diegod
         t.Fecha_Inicio,
         t.Fecha_Fin,
         t.Anulado
-    FROM dbo.Trabajos t
-    LEFT JOIN dbo.Clientes c 
+    FROM Trabajos t
+    LEFT JOIN Clientes c 
       ON t.Cliente_ID = c.ID
     WHERE 1=1";
 
             if (id.HasValue) sql += " AND t.ID = @ID";
             if (clienteId.HasValue) sql += " AND t.Cliente_ID = @CliID";
-            if (fechaPedido.HasValue) sql += " AND CAST(t.Fecha_Pedido AS DATE) = @FP";
+            if (fechaPedido.HasValue) sql += " AND date(t.Fecha_Pedido) = date(@FP)";
 
             sql += " ORDER BY t.Anulado DESC, t.Fecha_Pedido DESC;";
 
@@ -278,7 +278,7 @@ namespace Diegod
         public static int ModificarTrabajo(TrabajoPuente trabajo)
         {
             const string sql = @"
-                UPDATE dbo.Trabajos SET
+                UPDATE Trabajos SET
                     Fecha_Pedido     = @F,
                     Trabajo_Realizar = @T,
                     Presupuesto      = @P,
@@ -314,7 +314,7 @@ namespace Diegod
             var dt = new DataTable();
             const string sql = @"
             SELECT ID, Nombre, Apellido
-              FROM dbo.Clientes
+              FROM Clientes
              WHERE Nombre LIKE @C
                 OR Apellido LIKE @C;";
             using (var conn = BaseDatos.ObtenerConexion())
@@ -329,7 +329,7 @@ namespace Diegod
         // Actualiza el campo Anulado
         public static int ActualizarAnulado(int id, bool anulado)
         {
-            const string sql = "UPDATE dbo.Trabajos SET Anulado = @A WHERE ID = @ID;";
+            const string sql = "UPDATE Trabajos SET Anulado = @A WHERE ID = @ID;";
             using (var conn = BaseDatos.ObtenerConexion())
             using (var cmd = new SqlCommand(sql, conn))
             {
@@ -341,14 +341,14 @@ namespace Diegod
         public static int AgregarEmpleadoATrabajo(int trabajoId, int empleadoId, int valorTrabajo, string observaciones)
         {
             const string sqlInsert = @"
-        INSERT INTO dbo.Empleados_Trabajo
+        INSERT INTO Empleados_Trabajo
             (Empleado_ID, Trabajo_ID, Valor_Trabajo, Observaciones)
         VALUES
             (@Emp, @Trab, @Val, @Obs);
-        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+        SELECT last_insert_rowid();";
 
             const string sqlPendiente = @"
-        INSERT INTO dbo.Pagos_Pendientes (EmpleadoTrabajoID)
+        INSERT INTO Pagos_Pendientes (EmpleadoTrabajoID)
         VALUES (@EmpleadoTrabajoID);";
 
             using (var conn = BaseDatos.ObtenerConexion())
@@ -387,7 +387,7 @@ namespace Diegod
         public static int AgregarVehiculoATrabajo(int trabajoId, int vehiculoId)
         {
             const string sql = @"
-                INSERT INTO dbo.Vehiculos_Trabajo
+                INSERT INTO Vehiculos_Trabajo
                     (Vehiculo_ID, Trabajo_ID)
                 VALUES
                     (@Veh, @Trab);";
@@ -409,9 +409,9 @@ namespace Diegod
                     c.Nombre, 
                     c.Apellido, 
                     COUNT(t.ID) AS Trabajos_Realizados
-                  FROM dbo.Clientes c
+                  FROM Clientes c
                   LEFT 
-                  JOIN dbo.Trabajos t 
+                  JOIN Trabajos t 
                     ON c.ID = t.Cliente_ID 
                    AND t.Completado = 1
                GROUP 
@@ -438,10 +438,10 @@ namespace Diegod
                     et.Valor_Trabajo,
                     et.Observaciones,
                     t.Trabajo_Realizar AS Trabajo
-                  FROM dbo.Empleados_Trabajo et
-                  JOIN dbo.Empleados e 
+                  FROM Empleados_Trabajo et
+                  JOIN Empleados e 
                     ON et.Empleado_ID = e.ID
-                  JOIN dbo.Trabajos t 
+                  JOIN Trabajos t 
                     ON et.Trabajo_ID = t.ID
                  WHERE t.Completado = 0;";
             using (var conn = BaseDatos.ObtenerConexion())
@@ -462,10 +462,10 @@ namespace Diegod
                     v.Nombre, 
                     v.Patente, 
                     t.Trabajo_Realizar AS Trabajo
-                  FROM dbo.Vehiculos_Trabajo vt
-                  JOIN dbo.Vehiculos v 
+                  FROM Vehiculos_Trabajo vt
+                  JOIN Vehiculos v 
                     ON vt.Vehiculo_ID = v.ID
-                  JOIN dbo.Trabajos t 
+                  JOIN Trabajos t 
                     ON vt.Trabajo_ID = t.ID
                  WHERE t.Completado = 0;";
             using (var conn = BaseDatos.ObtenerConexion())
@@ -488,8 +488,8 @@ namespace Diegod
                     et.Trabajo_ID,
                     et.Valor_Trabajo,
                     et.Observaciones
-                  FROM dbo.Empleados_Trabajo et
-                  JOIN dbo.Empleados e 
+                  FROM Empleados_Trabajo et
+                  JOIN Empleados e 
                     ON et.Empleado_ID = e.ID;";
             using (var conn = BaseDatos.ObtenerConexion())
             using (var cmd = new SqlCommand(sql, conn))
@@ -510,8 +510,8 @@ namespace Diegod
                     v.Nombre,
                     v.Patente,
                     vt.Trabajo_ID
-                  FROM dbo.Vehiculos_Trabajo vt
-                  JOIN dbo.Vehiculos v 
+                  FROM Vehiculos_Trabajo vt
+                  JOIN Vehiculos v 
                     ON vt.Vehiculo_ID = v.ID;";
             using (var conn = BaseDatos.ObtenerConexion())
             using (var cmd = new SqlCommand(sql, conn))

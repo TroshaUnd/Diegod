@@ -1,0 +1,64 @@
+name: Compilar Diegod
+
+on:
+  push:
+    branches: [ main, master, escritorio-sqlite ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar y compilar
+        run: |
+          dotnet restore Diegod.sln
+          dotnet build Diegod.sln -c Release --no-restore
+
+      - name: Publicar .exe (autocontenido, no requiere instalar .NET)
+        run: >
+          dotnet publish Diegod.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -o publicar/win-x64
+
+      - name: Versión portable (.zip)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force publicar/portable | Out-Null
+          Copy-Item publicar/win-x64/Diegod.exe publicar/portable/
+          New-Item -ItemType File -Force publicar/portable/Diegod.portable | Out-Null
+          Compress-Archive -Path publicar/portable/* -DestinationPath publicar/Diegod-portable-win-x64.zip -Force
+
+      - name: Instalar Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Crear instalador
+        shell: pwsh
+        run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" instalador\Diegod.iss'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Diegod-Setup
+          path: instalador/salida/Diegod-Setup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Diegod-portable
+          path: publicar/Diegod-portable-win-x64.zip
+
+      - name: Publicar release (solo en tags vX.Y.Z)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            instalador/salida/Diegod-Setup.exe
+            publicar/Diegod-portable-win-x64.zip
