@@ -23,6 +23,8 @@ namespace Diegod
                 if (b.Text == "OK")
                     b.Click += (s, e) => ReenfocarTrasGuardar(f, (Button)s);
             }
+            Tema.Aplicar(f);
+            Navegacion.Agregar(f);
         }
 
         /// <summary>Si el formulario quedo vacio despues de guardar, deja el cursor en el primer campo.</summary>

@@ -366,7 +366,7 @@ namespace Diegod
             {
                 if (row.IsNewRow) continue;
                 bool anulado = Convert.ToBoolean(row.Cells["Anulado"].Value);
-                row.DefaultCellStyle.BackColor = anulado ? Color.LightGray : Color.Gold;
+                row.DefaultCellStyle.BackColor = anulado ? Tema.FilaInactiva : Tema.FilaNormal;
             }
             DGViewMovimientoStock.ClearSelection();
         }

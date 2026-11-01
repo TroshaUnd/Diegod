@@ -77,7 +77,7 @@ namespace Diegod
                 if (row.IsNewRow) continue;
                 var val = row.Cells["Activo"].Value;
                 if (val != null && bool.TryParse(val.ToString(), out bool activo))
-                    row.DefaultCellStyle.BackColor = activo ? Color.Gold : Color.Gray;
+                    row.DefaultCellStyle.BackColor = activo ? Tema.FilaNormal : Tema.FilaInactiva;
             }
 
             DGViewEmpleado.ClearSelection();
@@ -94,7 +94,7 @@ namespace Diegod
 
             var val = row.Cells["Activo"].Value;
             if (val != null && bool.TryParse(val.ToString(), out bool activo))
-                row.DefaultCellStyle.BackColor = activo ? Color.Gold : Color.Gray;
+                row.DefaultCellStyle.BackColor = activo ? Tema.FilaNormal : Tema.FilaInactiva;
         }
 
         private void bttnBuscar_Click(object sender, EventArgs e)
@@ -178,7 +178,7 @@ namespace Diegod
                 bool.TryParse(row.Cells["Activo"].Value?.ToString(), out bool nuevo))
             {
                 EmpleadosFunciones.ActualizarActivo(id, nuevo);
-                row.DefaultCellStyle.BackColor = nuevo ? Color.Gold : Color.Gray;
+                row.DefaultCellStyle.BackColor = nuevo ? Tema.FilaNormal : Tema.FilaInactiva;
             }
         }
         private void SetupActivoColumn()

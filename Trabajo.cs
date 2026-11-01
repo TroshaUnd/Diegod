@@ -94,7 +94,7 @@ namespace Diegod
             {
                 bool anul = e.Value != null && Convert.ToBoolean(e.Value);
                 DGViewVehiculosTrabajo.Rows[e.RowIndex].DefaultCellStyle.BackColor =
-                    anul ? Color.Gray : Color.Gold;
+                    anul ? Tema.FilaInactiva : Tema.FilaNormal;
             }
         }
 
@@ -185,7 +185,7 @@ namespace Diegod
             {
                 bool anul = e.Value != null && Convert.ToBoolean(e.Value);
                 DGViewEmpleadosTrabajo.Rows[e.RowIndex].DefaultCellStyle.BackColor =
-                    anul ? Color.Gray : Color.Gold;
+                    anul ? Tema.FilaInactiva : Tema.FilaNormal;
             }
         }
 
@@ -239,7 +239,7 @@ namespace Diegod
             {
                 bool an = e.Value != null && Convert.ToBoolean(e.Value);
                 DGViewTrabajos.Rows[e.RowIndex].DefaultCellStyle.BackColor =
-                    an ? Color.Gray : Color.Gold;
+                    an ? Tema.FilaInactiva : Tema.FilaNormal;
             }
         }
 

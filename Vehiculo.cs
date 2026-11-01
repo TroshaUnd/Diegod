@@ -53,7 +53,7 @@ namespace Diegod
 
                 var val = row.Cells["Activo"].Value;
                 if (val != null && bool.TryParse(val.ToString(), out bool activo))
-                    row.DefaultCellStyle.BackColor = activo ? Color.Gold : Color.Gray;
+                    row.DefaultCellStyle.BackColor = activo ? Tema.FilaNormal : Tema.FilaInactiva;
             }
 
             DGViewVehiculos.ClearSelection();
@@ -129,7 +129,7 @@ namespace Diegod
                 bool.TryParse(row.Cells["Activo"].Value?.ToString(), out bool nuevo))
             {
                 VehiculosFunciones.ActualizarActivoVehiculo(id, nuevo);
-                row.DefaultCellStyle.BackColor = nuevo ? Color.Green : Color.LightGray;
+                row.DefaultCellStyle.BackColor = nuevo ? Tema.FilaOk : Tema.FilaInactiva;
             }
         }
 
@@ -208,7 +208,7 @@ namespace Diegod
                 if (row.Cells["Activo"].Value != null &&
                     bool.TryParse(row.Cells["Activo"].Value.ToString(), out bool activo))
                 {
-                    row.DefaultCellStyle.BackColor = activo ? Color.Gold : Color.Gray;
+                    row.DefaultCellStyle.BackColor = activo ? Tema.FilaNormal : Tema.FilaInactiva;
                 }
             }
         }

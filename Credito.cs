@@ -122,7 +122,7 @@ namespace Diegod
             if (DGViewCredito.Columns[e.ColumnIndex].Name == "Anulado")
             {
                 bool anulado = e.Value != null && e.Value != DBNull.Value && Convert.ToBoolean(e.Value);
-                DGViewCredito.Rows[e.RowIndex].DefaultCellStyle.BackColor = anulado ? Color.Gray : Color.Gold;
+                DGViewCredito.Rows[e.RowIndex].DefaultCellStyle.BackColor = anulado ? Tema.FilaInactiva : Tema.FilaNormal;
             }
         }
 

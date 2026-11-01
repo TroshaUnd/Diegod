@@ -23,6 +23,12 @@ namespace Diegod
             _instancia.Activate();
         }
 
+        /// <summary>Oculta el menu principal si esta creado.</summary>
+        public static void Ocultar()
+        {
+            if (_instancia != null && !_instancia.IsDisposed) _instancia.Hide();
+        }
+
         public Menu()
         {
             InitializeComponent();
@@ -35,7 +41,7 @@ namespace Diegod
             {
                 Text = "MENÚ PRINCIPAL",
                 Font = new Font("Segoe UI Black", 18F, FontStyle.Bold),
-                ForeColor = Color.Black,
+                ForeColor = Tema.Texto,
                 BackColor = Color.Transparent,
                 TextAlign = ContentAlignment.MiddleLeft,
                 AutoSize = false,
