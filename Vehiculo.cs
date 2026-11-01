@@ -19,8 +19,6 @@ namespace Diegod
 
             // Suscribir eventos
             Load += Vehiculo_Load;
-            bttnBuscar.Click += btnBuscar_Click;
-            bttnLimpiar.Click += btnLimpiar_Click;
             DGViewVehiculos.CellContentClick += dgvVehiculos_CellContentClick;
             DGViewVehiculos.CurrentCellDirtyStateChanged += dgvVehiculos_CurrentCellDirtyStateChanged;
             DGViewVehiculos.CellValueChanged += dgvVehiculos_CellValueChanged;

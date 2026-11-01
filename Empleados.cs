@@ -18,13 +18,11 @@ namespace Diegod
 
             // Suscribir eventos
             Load += Empleados_Load;
-            bttnBuscar.Click += bttnBuscar_Click;
             bttnLimpiar.Click += bttnLimpiar_Click;
             DGViewEmpleado.CellContentClick += DGViewEmpleado_CellContentClick;
             DGViewEmpleado.CurrentCellDirtyStateChanged += DGViewEmpleado_CurrentCellDirtyStateChanged;
             DGViewEmpleado.CellValueChanged += DGViewEmpleado_CellValueChanged;
             DGViewEmpleado.SelectionChanged += DGViewEmpleado_SelectionChanged;
-            DGViewEmpleado.CellFormatting += DGViewEmpleado_CellFormatting;
             ComboxProvincia.SelectedIndexChanged += ComboxProvincia_SelectedIndexChanged;
         }
 

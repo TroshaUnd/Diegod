@@ -17,7 +17,6 @@ namespace Diegod
             // Suscripciones
             ComboxProvincia.SelectedIndexChanged += ComboxProvincia_SelectedIndexChanged;
             DGViewProveedor.DataBindingComplete += DGViewProveedor_DataBindingComplete;
-            DGViewProveedor.SelectionChanged += DGViewProveedor_SelectionChanged;
 
             // Estado inicial limpio
             ComboxProvincia.SelectedIndex = -1;

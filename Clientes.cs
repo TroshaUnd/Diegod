@@ -25,11 +25,8 @@ namespace Diegod
 
             // Suscribir eventos
             Load += Clientes_Load;
-            bttnBuscar.Click += bttnBuscar_Click;
-            bttnLimpiar.Click += bttnLimpiar_Click;
             DGViewCliente.SelectionChanged += DGViewCliente_SelectionChanged;
             ComboxProvincia.SelectedIndexChanged += ComboxProvincia_SelectedIndexChanged;
-            bttnModyAgr.Click += bttnModyAgr_Click;
         }
 
         private void Clientes_Load(object sender, EventArgs e)

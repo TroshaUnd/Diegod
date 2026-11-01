@@ -20,11 +20,8 @@ namespace Diegod
             // Eventos del formulario
             this.Load += Prestamista_Load;
             DGViewPrestamistas.DataBindingComplete += DGViewPrestamistas_DataBindingComplete;
-            DGViewPrestamistas.SelectionChanged += DGViewPrestamistas_SelectionChanged;
 
             // Botones
-            bttnLimpiar.Click += bttnLimpiar_Click;
-            bttnBuscar.Click += btnBuscar_Click;
         }
         private const string PlaceholderBuscarID = "ID";
         private const string PlaceholderBuscarNombre = "Nombre y Apellido";

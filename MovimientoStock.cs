@@ -24,22 +24,16 @@ namespace Diegod
 
             // Movimientos grid events
             DGViewMovimientoStock.DataBindingComplete += DGViewMovimientoStock_DataBindingComplete;
-            DGViewMovimientoStock.CellContentClick += DGViewMovimientoStock_CellContentClick;
             DGViewMovimientoStock.CurrentCellDirtyStateChanged += DGViewMovimientoStock_CurrentCellDirtyStateChanged;
             DGViewMovimientoStock.CellValueChanged += DGViewMovimientoStock_CellValueChanged;
             DGViewMovimientoStock.DataError += DGViewMovimientoStock_DataError;
             bttnBuscarMovimiento.Click += bttnBuscarMovimiento_Click;
 
-            // Controls
-            chkIngreso.CheckedChanged += chkIngreso_CheckedChanged;
-            chkEgreso.CheckedChanged += chkEgreso_CheckedChanged;
-            chkCambio.CheckedChanged += chkCambio_CheckedChanged; // Nuevo manejo
-            bttnLimpiar.Click += btnLimpiar_Click;
-            chkIngreso.CheckedChanged += chkIngreso_CheckedChanged;
-            chkEgreso.CheckedChanged += chkEgreso_CheckedChanged;
+            // Controls (cada evento se suscribe una sola vez)
             chkIngreso.CheckedChanged += chkIngresoEgreso_CheckedChanged;
             chkEgreso.CheckedChanged += chkIngresoEgreso_CheckedChanged;
             chkCambio.CheckedChanged += chkCambio_CheckedChanged;
+            bttnLimpiar.Click += btnLimpiar_Click;
 
             // ============================================
             // NUEVO: Bloquear txtPrecioTotal y suscribir recálculo
@@ -58,8 +52,7 @@ namespace Diegod
             DGViewStock.AllowUserToAddRows = false;
             DGViewProveedor.AllowUserToAddRows = false;
 
-            LimpiarCampos();
-            ActualizarEstadoControles();
+            LimpiarCampos(); // deja Ingreso marcado y actualiza los controles
         }
 
         private void bttnBuscarMovimiento_Click(object sender, EventArgs e)
@@ -142,6 +135,7 @@ namespace Diegod
             bool proveedorActivo = esIngreso && !esCambio;
             DGViewProveedor.Enabled = proveedorActivo;
             txtProveedor.Enabled = proveedorActivo;
+            txtProveedor.ReadOnly = false;
             if (!proveedorActivo) txtProveedor.Clear();
 
             // Precios: deshabilitados en Cambio
@@ -182,61 +176,6 @@ namespace Diegod
         private void chkCambio_CheckedChanged(object sender, EventArgs e)
         {
             ActualizarEstadoControles();
-        }
-
-        private void chkIngreso_CheckedChanged(object sender, EventArgs e)
-        {
-            if (_handlingToggle) return;
-            try
-            {
-                _handlingToggle = true;
-
-                // Si ingreso se marca, desmarco egreso
-                if (chkIngreso.Checked)
-                {
-                    chkEgreso.Checked = false;
-                    txtDestino.Clear();
-                    txtDestino.Enabled = false;
-                    DGViewProveedor.Enabled = true;
-                }
-                else if (!chkEgreso.Checked)
-                {
-                    // Si el usuario intentó desmarcar ingreso y egreso también está desmarcado:
-                    // lo rehago para que siempre haya uno activo
-                    chkIngreso.Checked = true;
-                }
-            }
-            finally
-            {
-                _handlingToggle = false;
-            }
-        }
-
-        private void chkEgreso_CheckedChanged(object sender, EventArgs e)
-        {
-            if (_handlingToggle) return;
-            try
-            {
-                _handlingToggle = true;
-
-                // Si egreso se marca, desmarco ingreso
-                if (chkEgreso.Checked)
-                {
-                    chkIngreso.Checked = false;
-                    txtProveedor.Clear();
-                    DGViewProveedor.Enabled = false;
-                    txtDestino.Enabled = true;
-                }
-                else if (!chkIngreso.Checked)
-                {
-                    // Evito que queden ambos desactivados
-                    chkEgreso.Checked = true;
-                }
-            }
-            finally
-            {
-                _handlingToggle = false;
-            }
         }
 
         private void btnAgregar_Click(object sender, EventArgs e)
@@ -449,9 +388,7 @@ namespace Diegod
             txtBuscarMovimientoID.Clear();
             txtBuscarMovimientoStock.Clear();
             txtBuscarMovimientoProveedor.Clear();
-            txtProducto.ReadOnly = true;
             txtProveedor.Clear();
-            txtProveedor.ReadOnly = true;
             txtDestino.Clear();
             dtpFechaMovimiento.Value = DateTime.Now;
             chkIngreso.Checked = true;
@@ -465,8 +402,7 @@ namespace Diegod
             DGViewMovimientoStock.ClearSelection();
             DGViewStock.ClearSelection();
             DGViewProveedor.ClearSelection();
-            DGViewProveedor.Enabled = true;
-            txtDestino.Enabled = false;
+            ActualizarEstadoControles();
         }
     }
 }

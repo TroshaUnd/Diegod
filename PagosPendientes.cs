@@ -2,6 +2,8 @@
 using System.Data;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Diegod
@@ -20,7 +22,6 @@ namespace Diegod
             // 2) Configurar DGViewPagosPendientes (Cobrar)
             DGViewPagosPendientes.AllowUserToAddRows = false;
             DGViewPagosPendientes.AutoGenerateColumns = true;
-            DGViewPagosPendientes.SelectionChanged += DGViewPagosPendientes_SelectionChanged;
             DGViewPagosPendientes.CurrentCellDirtyStateChanged += DGViewPagosPendientes_CurrentCellDirtyStateChanged;
             DGViewPagosPendientes.CellValueChanged += DGViewPagosPendientes_CellValueChanged;
             DGViewPagosPendientes.RowPrePaint += DGViewPagosPendientes_RowPrePaint;
@@ -122,36 +123,52 @@ namespace Diegod
 
         private void DGViewPagosPendientes_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
         {
-            var row = DGViewPagosPendientes.Rows[e.RowIndex];
+            if (e.RowIndex < 0) return;
+            PintarFila(DGViewPagosPendientes.Rows[e.RowIndex]);
+        }
 
-            // Gris si anulado
+        // Gris = anulado | Verde = pagado completo | Rojo = vencido sin pagar | Dorado = pendiente
+        private static void PintarFila(DataGridViewRow row)
+        {
             if (row.Cells["Anulado"].Value is bool an && an)
             {
                 row.DefaultCellStyle.BackColor = Color.LightGray;
                 return;
             }
 
-            // Verde si Pagado >= Deuda
-            try
+            decimal? deuda = ParseMonto(row.Cells["Deuda"].Value?.ToString());
+            decimal? pagado = ParseMonto(row.Cells["Pagado"].Value?.ToString());
+            if (deuda.HasValue && pagado.HasValue && pagado.Value >= deuda.Value)
             {
-                string dStr = row.Cells["Deuda"].Value?.ToString().Replace("$", "").Trim() ?? "0";
-                string pStr = row.Cells["Pagado"].Value?.ToString().Replace("$", "").Trim() ?? "0";
-                dStr = dStr.Replace(".", "").Replace(",", ".");
-                pStr = pStr.Replace(".", "").Replace(",", ".");
-                decimal deuda = decimal.Parse(dStr, CultureInfo.InvariantCulture);
-                decimal pagado = decimal.Parse(pStr, CultureInfo.InvariantCulture);
-
-                if (pagado >= deuda)
-                {
-                    row.DefaultCellStyle.BackColor = Color.LightGreen;
-                    return;
-                }
+                row.DefaultCellStyle.BackColor = Color.LightGreen;
+                return;
             }
-            catch { }
 
-            // Dorado por defecto
+            if (row.Cells["Fecha_Vencimiento"].Value is DateTime venc && venc.Date < DateTime.Today)
+            {
+                row.DefaultCellStyle.BackColor = Color.Tomato;
+                return;
+            }
+
             row.DefaultCellStyle.BackColor = Color.Gold;
         }
+
+        /// <summary>Convierte textos como "$150.000", "$1500.5" o "$2000" en numero. Null si no se entiende.</summary>
+        internal static decimal? ParseMonto(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return null;
+            string s = texto.Replace("$", "").Replace(" ", "").Trim();
+            if (s.Length == 0) return null;
+
+            bool punto = s.Contains('.'), coma = s.Contains(',');
+            if (punto && coma) s = s.Replace(".", "").Replace(",", ".");
+            else if (coma) s = s.Replace(",", ".");
+            else if (punto && Regex.IsMatch(s, @"^\d{1,3}(\.\d{3})+$")) s = s.Replace(".", "");
+
+            return decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal d) ? d : (decimal?)null;
+        }
+
+        private static string Dinero(decimal v) => "$" + v.ToString("#,##0.##", new CultureInfo("es-AR"));
 
         private void DGViewPagosPendientes_SelectionChanged(object sender, EventArgs e)
         {
@@ -206,35 +223,8 @@ namespace Diegod
 
         private void DGViewPagosPagar_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
         {
-            var row = DGViewPagosPagar.Rows[e.RowIndex];
-
-            // Gris si anulado
-            if (row.Cells["Anulado"].Value is bool an && an)
-            {
-                row.DefaultCellStyle.BackColor = Color.LightGray;
-                return;
-            }
-
-            // Verde si Pagado >= Deuda
-            try
-            {
-                string dStr = row.Cells["Deuda"].Value?.ToString().Replace("$", "").Trim() ?? "0";
-                string pStr = row.Cells["Pagado"].Value?.ToString().Replace("$", "").Trim() ?? "0";
-                dStr = dStr.Replace(".", "").Replace(",", ".");
-                pStr = pStr.Replace(".", "").Replace(",", ".");
-                decimal deuda = decimal.Parse(dStr, CultureInfo.InvariantCulture);
-                decimal pagado = decimal.Parse(pStr, CultureInfo.InvariantCulture);
-
-                if (pagado >= deuda)
-                {
-                    row.DefaultCellStyle.BackColor = Color.LightGreen;
-                    return;
-                }
-            }
-            catch { }
-
-            // Dorado por defecto
-            row.DefaultCellStyle.BackColor = Color.Gold;
+            if (e.RowIndex < 0) return;
+            PintarFila(DGViewPagosPagar.Rows[e.RowIndex]);
         }
 
         private void DGViewPagosPagar_SelectionChanged(object sender, EventArgs e)
@@ -322,9 +312,43 @@ namespace Diegod
                     MessageBox.Show("Monto inválido.");
                     return;
                 }
+                // Controlar contra lo que se debe / se tiene que cobrar
+                DataTable actual = PagosFunciones.RegistroPagosPendientes();
+                DataRow fila = actual.AsEnumerable().FirstOrDefault(r => r.Field<int>("ID") == pagoID);
+                if (fila != null)
+                {
+                    decimal? deuda = ParseMonto(fila["Deuda"]?.ToString());
+                    decimal pagado = ParseMonto(fila["Pagado"]?.ToString()) ?? 0m;
+                    if (deuda.HasValue && deuda.Value > 0)
+                    {
+                        decimal saldo = deuda.Value - pagado;
+                        if (saldo <= 0)
+                        {
+                            MessageBox.Show("El monto ya está completo.\n\nTotal: " + Dinero(deuda.Value) +
+                                            "\nYa registrado: " + Dinero(pagado),
+                                            "Monto completo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+                        if (monto > saldo)
+                        {
+                            MessageBox.Show("El monto ingresado (" + Dinero(monto) + ") se pasa por " +
+                                            Dinero(monto - saldo) + " de lo solicitado.\n\nTotal: " + Dinero(deuda.Value) +
+                                            "\nYa registrado: " + Dinero(pagado) + "\nSaldo pendiente: " + Dinero(saldo),
+                                            "Monto excedido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                    }
+                }
+
                 DateTime fechaPago = DateFechaPago.Value;
                 if (PagosFunciones.AgregarHistorial(pagoID, fechaPago, monto) > 0)
+                {
                     MessageBox.Show("Registro de historial agregado.");
+                    txtMonto.Clear();
+                    // Recargar las tablas para que cambien los montos y los colores
+                    _pagosTable = PagosFunciones.RegistroPagosPendientes();
+                    CargarGrillas();
+                }
                 else
                     MessageBox.Show("Error al agregar historial.");
             }
