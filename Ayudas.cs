@@ -104,7 +104,8 @@ namespace Diegod
 
         private static bool EsBuscador(Control c)
         {
-            return c.Name.StartsWith("txtBuscar") || c.Name.StartsWith("DateBuscar") || c.Name.StartsWith("dtpBuscar");
+            return c.Name.StartsWith("txtBuscar") || c.Name.StartsWith("DateBuscar") || c.Name.StartsWith("dtpBuscar")
+                || c.Name == "txtCliente" || c.Name == "txtEmpleado" || c.Name == "txtVehiculo";
         }
 
         private static void Form_KeyDown(object sender, KeyEventArgs e)
@@ -152,6 +153,7 @@ namespace Diegod
             {
                 if (!(c is TextBox || c is ComboBox || c is DateTimePicker || c is CheckBox)) continue;
                 if (EsBuscador(c) || !c.Visible || !c.Enabled) continue;
+                if (c.Parent != activo.Parent) continue; // Enter solo recorre la tarjeta (panel) donde estas
                 if (c is CheckBox && c != activo) continue; // las casillas se saltan con Enter
                 if (c is TextBox tx && (tx.ReadOnly || tx.Multiline)) continue;
                 entradas.Add(c);

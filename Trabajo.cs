@@ -663,7 +663,7 @@ namespace Diegod
                     MessageBoxButtons.OK,
                     filas > 0 ? MessageBoxIcon.Information : MessageBoxIcon.Error
                 );
-                DGViewEmpleadosTrabajo.DataSource = TrabajoFunciones.VerEmpleadosTrabajo();
+                CargarEmpleadosTrabajo(trabajoId);
             }
             catch (Exception ex)
             {
@@ -699,7 +699,7 @@ namespace Diegod
                     MessageBoxButtons.OK,
                     filas > 0 ? MessageBoxIcon.Information : MessageBoxIcon.Error
                 );
-                DGViewVehiculosTrabajo.DataSource = TrabajoFunciones.VerVehiculosTrabajo();
+                CargarVehiculosTrabajo(trabajoId);
             }
             catch (Exception ex)
             {
