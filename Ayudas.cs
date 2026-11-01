@@ -18,6 +18,46 @@ namespace Diegod
             f.KeyDown += Form_KeyDown;
             f.FormClosed += Form_FormClosed;
             Preparar(f);
+            foreach (var b in Recolectar<Button>(f))
+            {
+                if (b.Text == "OK")
+                    b.Click += (s, e) => ReenfocarTrasGuardar(f, (Button)s);
+            }
+        }
+
+        /// <summary>Si el formulario quedo vacio despues de guardar, deja el cursor en el primer campo.</summary>
+        private static void ReenfocarTrasGuardar(Form f, Button ok)
+        {
+            var botonesOk = Filtrar(Recolectar<Button>(f), b => b.Text == "OK" && b.Visible && b.Enabled);
+            var lista = new List<Control>();
+            foreach (var c in Recolectar<Control>(f))
+            {
+                if (!(c is TextBox || c is ComboBox || c is DateTimePicker || c is CheckBox)) continue;
+                if (EsBuscador(c) || !c.Visible || !c.Enabled) continue;
+                if (c is TextBox tx && tx.ReadOnly) continue;
+                if (c.Parent != null && (c.Bottom <= 0 || c.Top >= c.Parent.ClientSize.Height)) continue;
+                if (Cercano(botonesOk, c) != ok) continue;
+                lista.Add(c);
+            }
+
+            bool hayTexto = false, algunoLleno = false;
+            foreach (var c in lista)
+            {
+                if (c is TextBox t)
+                {
+                    hayTexto = true;
+                    if (!string.IsNullOrWhiteSpace(t.Text)) algunoLleno = true;
+                }
+            }
+            if (!hayTexto || algunoLleno) return;
+
+            lista.Sort((a, b) =>
+            {
+                Point pa = Posicion(a), pb = Posicion(b);
+                return pa.Y != pb.Y ? pa.Y.CompareTo(pb.Y) : pa.X.CompareTo(pb.X);
+            });
+            var primero = lista.Find(x => x is TextBox);
+            primero?.Focus();
         }
 
         /// <summary>Lee el numero inicial de textos como "3 - Juan Perez". Devuelve null si no hay.</summary>
