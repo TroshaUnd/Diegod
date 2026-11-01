@@ -11,6 +11,7 @@ namespace Diegod
         public Historial()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             Load += Historial_Load;
 
             // Configuro dtp para meses
@@ -111,8 +112,7 @@ namespace Diegod
 
         private void BttnRetroceder_Click(object sender, EventArgs e)
         {
-            new Menu().Show();
-            this.Hide();
+            Ayudas.Volver(this);
         }
 
         private void LimpiarCampos()

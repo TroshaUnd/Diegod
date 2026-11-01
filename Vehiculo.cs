@@ -12,6 +12,7 @@ namespace Diegod
         public Vehiculo()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             txtId.ReadOnly = true;
 
             // Desactivar fila vacía
@@ -81,6 +82,8 @@ namespace Diegod
             txtBuscar.Clear();
             txtBuscarPatente.Clear();
             RefrescarGrid();
+            DGViewVehiculos.ClearSelection();
+            LimpiarCampos();
         }
 
         private void dgvVehiculos_SelectionChanged(object sender, EventArgs e)
@@ -184,8 +187,7 @@ namespace Diegod
 
         private void btnVolver_Click(object sender, EventArgs e)
         {
-            new Menu().Show();
-            this.Hide();
+            Ayudas.Volver(this);
         }
         private void DGViewVehiculo_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {

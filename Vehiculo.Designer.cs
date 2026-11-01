@@ -379,7 +379,7 @@
             FormBorderStyle = FormBorderStyle.None;
             Name = "Vehiculo";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Vehiculo";
+            Text = "Vehículos";
             Load += Vehiculo_Load;
             ((System.ComponentModel.ISupportInitialize)DGViewVehiculos).EndInit();
             panel3.ResumeLayout(false);

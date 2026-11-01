@@ -468,7 +468,7 @@
             FormBorderStyle = FormBorderStyle.None;
             Name = "PagosPendientes";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "PagosPendientes";
+            Text = "Pagos pendientes";
             Load += PagosPendientes_Load;
             panel3.ResumeLayout(false);
             panel3.PerformLayout();

@@ -10,6 +10,7 @@ namespace Diegod
         public Credito()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             Load += Credito_Load;
             DGViewPrestamista.CellClick += DGViewPrestamistas_CellClick;
             DGViewPrestamista.DataBindingComplete += DGViewPrestamistas_DataBindingComplete;
@@ -69,6 +70,11 @@ namespace Diegod
             txtBuscarID.Clear();
             txtBuscar.Clear();
             DateBuscarFecha.Value = DateTime.Now;
+            txtPrestamista.Clear();
+            txtMonto.Clear();
+            txtObservacion.Clear();
+            DateFechaCredito.Value = DateTime.Now;
+            DateFechaVencimiento.Value = DateTime.Now;
             txtBuscarPrestamistaID.Clear();
             txtBuscarPrestamista.Clear();
             CargarCreditos();
@@ -154,9 +160,7 @@ namespace Diegod
 
         private void bttnVolver_Click(object sender, EventArgs e)
         {
-            var frmMenu = new Menu();
-            Hide();
-            frmMenu.Show();
+            Ayudas.Volver(this);
         }
 
         private void CargarCreditos()

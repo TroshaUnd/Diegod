@@ -10,6 +10,7 @@ namespace Diegod
         public MovimientoStock()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             Load += MovimientoStock_Load;
 
             // Stock grid events
@@ -347,9 +348,7 @@ namespace Diegod
 
         private void btnVolver_Click(object sender, EventArgs e)
         {
-            Menu frmMenu = new Menu();
-            this.Hide();
-            frmMenu.Show();
+            Ayudas.Volver(this);
         }
 
         private void MovimientoStock_Load_1(object sender, EventArgs e)

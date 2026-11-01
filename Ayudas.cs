@@ -1,0 +1,189 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace Diegod
+{
+    /// <summary>
+    /// Comodidades comunes a todas las pantallas:
+    /// Enter pasa al campo siguiente (o busca / confirma), Esc vuelve al menu,
+    /// textos de ayuda en los buscadores, fechas cortas y cierre ordenado.
+    /// </summary>
+    internal static class Ayudas
+    {
+        public static void Configurar(Form f)
+        {
+            f.KeyPreview = true;
+            f.KeyDown += Form_KeyDown;
+            f.FormClosed += Form_FormClosed;
+            Preparar(f);
+        }
+
+        /// <summary>Vuelve al menu principal cerrando la pantalla actual.</summary>
+        public static void Volver(Form f)
+        {
+            f.Tag = "volver";
+            Menu.Mostrar();
+            f.Close();
+        }
+
+        private static void Form_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            var f = (Form)sender;
+            if (f.Tag is string t && t == "volver") return;
+            // Cerrar con Alt+F4 o desde la barra de tareas debe cerrar todo el programa
+            if (e.CloseReason == CloseReason.UserClosing) Application.Exit();
+        }
+
+        private static void Preparar(Control raiz)
+        {
+            foreach (Control c in raiz.Controls)
+            {
+                if (c is TextBox tb)
+                {
+                    if (tb.Name.StartsWith("txtBuscar") && string.IsNullOrEmpty(tb.Text))
+                        tb.PlaceholderText = TextoAyuda(tb.Name);
+                    if (tb.ReadOnly) tb.TabStop = false;
+                }
+                else if (c is DateTimePicker dtp && dtp.Format == DateTimePickerFormat.Long)
+                {
+                    dtp.Format = DateTimePickerFormat.Short;
+                }
+                if (c.HasChildren) Preparar(c);
+            }
+        }
+
+        private static string TextoAyuda(string nombre)
+        {
+            if (nombre.EndsWith("ID")) return "ID";
+            if (nombre.Contains("Patente")) return "Patente";
+            if (nombre.Contains("Proveedor")) return "Proveedor";
+            if (nombre.Contains("Prestamista")) return "Prestamista";
+            if (nombre.Contains("Stock") || nombre.Contains("Producto")) return "Producto";
+            if (nombre.Contains("Empleado")) return "Empleado";
+            if (nombre.Contains("Cliente")) return "Cliente";
+            return "Nombre";
+        }
+
+        private static bool EsBuscador(Control c)
+        {
+            return c.Name.StartsWith("txtBuscar") || c.Name.StartsWith("DateBuscar") || c.Name.StartsWith("dtpBuscar");
+        }
+
+        private static void Form_KeyDown(object sender, KeyEventArgs e)
+        {
+            var f = (Form)sender;
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                if (ActivoFinal(f) is ComboBox abierto && abierto.DroppedDown) return;
+                foreach (var b in Recolectar<Button>(f))
+                {
+                    if (b.Name == "BttnRetroceder" && b.Visible && b.Enabled)
+                    {
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        b.PerformClick();
+                        return;
+                    }
+                }
+                return;
+            }
+
+            if (e.KeyCode != Keys.Enter || e.Control || e.Alt || e.Shift) return;
+
+            Control activo = ActivoFinal(f);
+            if (activo == null) return;
+            if (activo is ComboBox cb && cb.DroppedDown) return;
+            if (activo is TextBox t && t.Multiline) return;
+            if (!(activo is TextBox || activo is ComboBox || activo is DateTimePicker || activo is CheckBox)) return;
+
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+
+            // En un buscador: Enter = pulsar su boton Buscar
+            if (EsBuscador(activo))
+            {
+                var buscar = Cercano(Filtrar(Recolectar<Button>(f), b => b.Text == "Buscar"), activo);
+                buscar?.PerformClick();
+                return;
+            }
+
+            // En el formulario: Enter = pasar al siguiente campo; en el ultimo, confirmar (OK)
+            var entradas = new List<Control>();
+            foreach (var c in Recolectar<Control>(f))
+            {
+                if (!(c is TextBox || c is ComboBox || c is DateTimePicker || c is CheckBox)) continue;
+                if (EsBuscador(c) || !c.Visible || !c.Enabled) continue;
+                if (c is TextBox tx && (tx.ReadOnly || tx.Multiline)) continue;
+                entradas.Add(c);
+            }
+            entradas.Sort((a, b) =>
+            {
+                Point pa = Posicion(a), pb = Posicion(b);
+                return pa.Y != pb.Y ? pa.Y.CompareTo(pb.Y) : pa.X.CompareTo(pb.X);
+            });
+
+            Button ok = Cercano(Filtrar(Recolectar<Button>(f), b => b.Text == "OK" && b.Visible && b.Enabled), activo);
+            int i = entradas.IndexOf(activo);
+            if (i >= 0 && i + 1 < entradas.Count)
+            {
+                Control siguiente = entradas[i + 1];
+                Button okSiguiente = Cercano(Filtrar(Recolectar<Button>(f), b => b.Text == "OK" && b.Visible && b.Enabled), siguiente);
+                if (ok == null || ok == okSiguiente)
+                {
+                    siguiente.Focus();
+                    if (siguiente is TextBox ts) ts.SelectAll();
+                    return;
+                }
+            }
+            ok?.PerformClick();
+        }
+
+        private static Control ActivoFinal(Form f)
+        {
+            Control c = f.ActiveControl;
+            while (c is ContainerControl cc && cc.ActiveControl != null && cc.ActiveControl != c)
+                c = cc.ActiveControl;
+            return c;
+        }
+
+        private static List<T> Recolectar<T>(Control raiz) where T : Control
+        {
+            var lista = new List<T>();
+            foreach (Control c in raiz.Controls)
+            {
+                if (c is T t) lista.Add(t);
+                if (c.HasChildren) lista.AddRange(Recolectar<T>(c));
+            }
+            return lista;
+        }
+
+        private static List<T> Filtrar<T>(List<T> origen, Func<T, bool> condicion)
+        {
+            return origen.FindAll(x => condicion(x));
+        }
+
+        private static Point Posicion(Control c)
+        {
+            return c.Parent != null ? c.Parent.PointToScreen(c.Location) : c.Location;
+        }
+
+        private static T Cercano<T>(List<T> candidatos, Control referencia) where T : Control
+        {
+            T mejor = null;
+            double mejorDist = double.MaxValue;
+            Point r = Posicion(referencia);
+            r.Offset(referencia.Width / 2, referencia.Height / 2);
+            foreach (var c in candidatos)
+            {
+                Point p = Posicion(c);
+                p.Offset(c.Width / 2, c.Height / 2);
+                double d = Math.Pow(p.X - r.X, 2) + Math.Pow(p.Y - r.Y, 2);
+                if (d < mejorDist) { mejorDist = d; mejor = c; }
+            }
+            return mejor;
+        }
+    }
+}

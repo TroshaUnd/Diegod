@@ -476,7 +476,7 @@
             FormBorderStyle = FormBorderStyle.None;
             Name = "Credito";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Credito";
+            Text = "Crédito";
             Load += Credito_Load;
             ((System.ComponentModel.ISupportInitialize)DGViewPrestamista).EndInit();
             panel3.ResumeLayout(false);

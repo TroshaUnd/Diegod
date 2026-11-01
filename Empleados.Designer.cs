@@ -584,7 +584,7 @@
             FormBorderStyle = FormBorderStyle.None;
             Name = "Empleados";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Formulario";
+            Text = "Empleados";
             Load += Empleados_Load;
             ((System.ComponentModel.ISupportInitialize)DGViewEmpleado).EndInit();
             panel3.ResumeLayout(false);

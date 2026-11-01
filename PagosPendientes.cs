@@ -15,6 +15,7 @@ namespace Diegod
         public PagosPendientes()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
 
             // 1) Obtener la tabla completa sólo una vez
             _pagosTable = PagosFunciones.RegistroPagosPendientes();
@@ -378,6 +379,7 @@ namespace Diegod
             txtBuscar.Clear();
             DateBuscarFecha.Checked = false;
             DateBuscarFecha.Value = DateTime.Today;
+            dtpVencimiento.Value = DateTime.Today;
             _pagosTable = PagosFunciones.RegistroPagosPendientes();
             CargarGrillas();
         }
@@ -391,8 +393,7 @@ namespace Diegod
 
         private void BttnRetroceder_Click(object sender, EventArgs e)
         {
-            new Menu().Show();
-            this.Hide();
+            Ayudas.Volver(this);
         }
         private void HideAllNewRows()
         {

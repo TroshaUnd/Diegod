@@ -41,9 +41,8 @@ namespace Diegod
                         {
                             if (lector.HasRows)
                             {
-                                Menu frmMenu = new Menu();
+                                Menu.Mostrar();
                                 this.Hide();
-                                frmMenu.Show();
                             }
                             else
                             {

@@ -13,6 +13,7 @@ namespace Diegod
         public Stock()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             txtId.ReadOnly = true;
 
             // Forzar selección de fila completa y desactivar multi-select
@@ -163,9 +164,7 @@ namespace Diegod
 
         private void btnVolver_Click(object sender, EventArgs e)
         {
-            Menu frmMenu = new Menu();
-            this.Hide();
-            frmMenu.Show();
+            Ayudas.Volver(this);
         }
 
         private void bttnBuscar_Click(object sender, EventArgs e)

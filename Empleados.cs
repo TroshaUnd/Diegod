@@ -11,6 +11,7 @@ namespace Diegod
         public Empleados()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             txtId.ReadOnly = true;
 
             // Desactivar fila vacía
@@ -301,13 +302,14 @@ namespace Diegod
         private void BttnLimpiar_Click(object sender, EventArgs e)
         {
             LimpiarCampos();
+            txtBuscarID.Clear();
+            txtBuscar.Clear();
             DGViewEmpleado.DataSource = EmpleadosFunciones.RegistroEmpleado();
         }
         private void BttnX_Click(object sender, EventArgs e) => Application.Exit();
         private void BttnRetroceder_Click(object sender, EventArgs e)
         {
-            new Menu().Show();
-            this.Hide();
+            Ayudas.Volver(this);
         }
 
         private void ComboxLocalidad_SelectedIndexChanged(object sender, EventArgs e)

@@ -662,7 +662,7 @@
             FormBorderStyle = FormBorderStyle.None;
             Name = "MovimientoStock";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Movimiento";
+            Text = "Movimiento de stock";
             Load += MovimientoStock_Load;
             ((System.ComponentModel.ISupportInitialize)DGViewMovimientoStock).EndInit();
             panel3.ResumeLayout(false);

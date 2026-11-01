@@ -12,9 +12,37 @@ namespace Diegod
 {
     public partial class Menu : Form
     {
+        private static Menu _instancia;
+
+        /// <summary>Muestra el menu principal (una sola instancia).</summary>
+        public static void Mostrar()
+        {
+            if (_instancia == null || _instancia.IsDisposed)
+                _instancia = new Menu();
+            _instancia.Show();
+            _instancia.Activate();
+        }
+
         public Menu()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
+
+            // Titulo propio y boton Historial con tamano normal (antes parecia un titulo)
+            BttnHistorial.Location = new Point(908, 13);
+            BttnHistorial.Size = new Size(225, 47);
+            var titulo = new Label
+            {
+                Text = "MENÚ PRINCIPAL",
+                Font = new Font("Segoe UI Black", 18F, FontStyle.Bold),
+                ForeColor = Color.Black,
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = false,
+                Location = new Point(14, 13),
+                Size = new Size(880, 47)
+            };
+            BttnHistorial.Parent.Controls.Add(titulo);
         }
         private void Menu_Load(object sender, EventArgs e)
         {

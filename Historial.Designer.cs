@@ -157,7 +157,7 @@
             lblCobrado.Name = "lblCobrado";
             lblCobrado.Size = new Size(48, 21);
             lblCobrado.TabIndex = 250;
-            lblCobrado.Text = "Num";
+            lblCobrado.Text = "$0";
             // 
             // lblPagado
             // 
@@ -167,7 +167,7 @@
             lblPagado.Name = "lblPagado";
             lblPagado.Size = new Size(48, 21);
             lblPagado.TabIndex = 251;
-            lblPagado.Text = "Num";
+            lblPagado.Text = "$0";
             // 
             // lblTotal
             // 
@@ -177,15 +177,15 @@
             lblTotal.Name = "lblTotal";
             lblTotal.Size = new Size(48, 21);
             lblTotal.TabIndex = 252;
-            lblTotal.Text = "Num";
+            lblTotal.Text = "$0";
             // 
             // bttnImprimirReporte
             // 
             bttnImprimirReporte.Location = new Point(237, 26);
             bttnImprimirReporte.Name = "bttnImprimirReporte";
-            bttnImprimirReporte.Size = new Size(120, 23);
+            bttnImprimirReporte.Size = new Size(150, 30);
             bttnImprimirReporte.TabIndex = 253;
-            bttnImprimirReporte.Text = "button1";
+            bttnImprimirReporte.Text = "Imprimir reporte";
             bttnImprimirReporte.UseVisualStyleBackColor = true;
             bttnImprimirReporte.Click += bttnImprimirReporte_Click;
             // 

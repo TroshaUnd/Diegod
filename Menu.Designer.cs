@@ -432,7 +432,7 @@
             Margin = new Padding(3, 2, 3, 2);
             Name = "Menu";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Menu";
+            Text = "Diegod - Menú";
             Load += Menu_Load_1;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel5.ResumeLayout(false);

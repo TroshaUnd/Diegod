@@ -14,6 +14,7 @@ namespace Diegod
         public Prestamista()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
 
             txtId.ReadOnly = true;
 
@@ -187,9 +188,7 @@ namespace Diegod
         }
         private void btnVolver_Click(object sender, EventArgs e)
         {
-            var frmMenu = new Menu();
-            this.Hide();
-            frmMenu.Show();
+            Ayudas.Volver(this);
         }
 
         private void bttnSalir_Click(object sender, EventArgs e) => Application.Exit();

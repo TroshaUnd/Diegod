@@ -11,6 +11,7 @@ namespace Diegod
         public Trabajo()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
 
             // Suscribir eventos para EmpleadosTrabajo
             DGViewEmpleadosTrabajo.DataBindingComplete += DGViewEmpleadosTrabajo_DataBindingComplete;
@@ -535,6 +536,7 @@ namespace Diegod
             txtVehiculoID.Clear();
             DGViewVehiculos.ClearSelection();
             txtBuscarClienteID.Clear();
+            txtBuscarID.Clear();
             dtpBuscarFecha.Value = DateTime.Now;
             DGViewTrabajos.ClearSelection();
         }
@@ -572,9 +574,7 @@ namespace Diegod
 
         private void bttnVolver_Click(object sender, EventArgs e)
         {
-            var frmMenu = new Menu();
-            this.Hide();
-            frmMenu.Show();
+            Ayudas.Volver(this);
         }
         private void bttnAgregarModificar_Click(object sender, EventArgs e)
         {

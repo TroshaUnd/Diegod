@@ -13,6 +13,7 @@ namespace Diegod
         public Clientes()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             txtId.ReadOnly = true;
 
             // Placeholders
@@ -71,6 +72,8 @@ namespace Diegod
 
         private void bttnLimpiar_Click(object sender, EventArgs e)
         {
+            txtBuscarID.Text = string.Empty;
+            txtBuscar.Text = string.Empty;
             ApplyPlaceholder(txtBuscarID, PlaceholderBuscarID);
             ApplyPlaceholder(txtBuscar, PlaceholderBuscarNombre);
             RefrescarGrid();
@@ -223,9 +226,7 @@ namespace Diegod
 
         private void BttnRetroceder_Click(object sender, EventArgs e)
         {
-            Menu FrmMenu = new Menu();
-            this.Hide();
-            FrmMenu.Show();
+            Ayudas.Volver(this);
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Diegod
         public Proveedor()
         {
             InitializeComponent();
+            Ayudas.Configurar(this);
             txtId.ReadOnly = true;
 
             // Suscripciones
@@ -295,8 +296,7 @@ namespace Diegod
         private void btnSalir_Click(object sender, EventArgs e) => Application.Exit();
         private void btnRetroceder_Click(object sender, EventArgs e)
         {
-            new Menu().Show();
-            Hide();
+            Ayudas.Volver(this);
         }
     }
 }
