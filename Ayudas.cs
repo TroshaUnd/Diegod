@@ -68,6 +68,14 @@ namespace Diegod
         private static void PrepararGrilla(DataGridView g)
         {
             g.AllowUserToAddRows = false;
+            g.CellFormatting += (s, e) =>
+            {
+                if (e.Value is DateTime d)
+                {
+                    e.Value = d.ToString("dd/MM/yyyy");
+                    e.FormattingApplied = true;
+                }
+            };
             g.DataBindingComplete += (s, e) =>
             {
                 foreach (DataGridViewColumn col in g.Columns)

@@ -182,10 +182,23 @@ namespace Diegod
                     return;
                 }
 
+                decimal? montoValido = PagosPendientes.ParseMonto(txtMonto.Text);
+                if (!montoValido.HasValue || montoValido.Value <= 0)
+                {
+                    MessageBox.Show("Ingrese un monto válido mayor a cero (por ejemplo 15000).", "Monto incorrecto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtMonto.Focus();
+                    return;
+                }
+                if (DateFechaVencimiento.Value.Date < DateFechaCredito.Value.Date)
+                {
+                    MessageBox.Show("La fecha de vencimiento no puede ser anterior a la fecha del crédito.", "Fecha incorrecta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 var credito = new CreditoPuente
                 {
                     Prestamista_ID = int.Parse(txtPrestamista.Text),
-                    Monto_Credito = decimal.Parse(txtMonto.Text),
+                    Monto_Credito = montoValido.Value,
                     Fecha_Credito = DateFechaCredito.Value,
                     Fecha_Vencimiento = DateFechaVencimiento.Value,
                     Observacion = string.IsNullOrEmpty(txtObservacion.Text) ? null : txtObservacion.Text,

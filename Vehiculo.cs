@@ -147,6 +147,16 @@ namespace Diegod
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(txtNombre.Text)){
+                    MessageBox.Show("El nombre es obligatorio.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(txtPatente.Text)){
+                    MessageBox.Show("La patente es obligatoria.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtPatente.Focus();
+                    return;
+                }
                 var vehiculo = new VehiculosPuente
                 {
                     Nombre = txtNombre.Text,

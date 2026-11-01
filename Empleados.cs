@@ -249,6 +249,16 @@ namespace Diegod
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(txtNombre.Text)){
+                    MessageBox.Show("El nombre es obligatorio.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(txtApellido.Text)){
+                    MessageBox.Show("El apellido es obligatorio.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtApellido.Focus();
+                    return;
+                }
                 if (ComboxProvincia.SelectedItem == null)
                 {
                     MessageBox.Show("Seleccione una provincia.");
@@ -291,8 +301,7 @@ namespace Diegod
                 }
                 else
                     MessageBox.Show("ID inválido. No se puede modificar el empleado.");
-                LimpiarCampos();
-                DGViewEmpleado.DataSource = EmpleadosFunciones.RegistroEmpleado();
+                RefrescarGrid();
             }
             catch (Exception ex)
             {
@@ -301,10 +310,9 @@ namespace Diegod
         }
         private void BttnLimpiar_Click(object sender, EventArgs e)
         {
-            LimpiarCampos();
             txtBuscarID.Clear();
             txtBuscar.Clear();
-            DGViewEmpleado.DataSource = EmpleadosFunciones.RegistroEmpleado();
+            RefrescarGrid();
         }
         private void BttnX_Click(object sender, EventArgs e) => Application.Exit();
         private void BttnRetroceder_Click(object sender, EventArgs e)

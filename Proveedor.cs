@@ -276,7 +276,16 @@ namespace Diegod
                 LimpiarCampos();
             }
 
+            RecargarGrillaProveedores();
+        }
+
+        private void RecargarGrillaProveedores()
+        {
+            suppressSelection = true;
             DGViewProveedor.DataSource = ProveedoresFunciones.RegistroProveedor();
+            DGViewProveedor.ClearSelection();
+            suppressSelection = false;
+            LimpiarCampos();
         }
 
         private void btnBuscar_Click(object sender, EventArgs e)
@@ -289,8 +298,7 @@ namespace Diegod
 
         private void btnRestablecer_Click(object sender, EventArgs e)
         {
-            LimpiarCampos();
-            DGViewProveedor.DataSource = ProveedoresFunciones.RegistroProveedor();
+            RecargarGrillaProveedores();
         }
 
         private void btnSalir_Click(object sender, EventArgs e) => Application.Exit();

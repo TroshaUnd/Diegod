@@ -585,6 +585,12 @@ namespace Diegod
                     MessageBox.Show("Seleccione un cliente.");
                     return;
                 }
+                if (string.IsNullOrWhiteSpace(txtTrabajoRealizar.Text))
+                {
+                    MessageBox.Show("Indique qué trabajo hay que realizar.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtTrabajoRealizar.Focus();
+                    return;
+                }
                 var trabajo = new TrabajoPuente
                 {
                     Fecha_Pedido = dtpFechaPedido.Value,

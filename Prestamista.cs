@@ -107,6 +107,16 @@ namespace Diegod
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(txtNombre.Text)){
+                    MessageBox.Show("El nombre es obligatorio.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.Focus();
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(txtApellido.Text)){
+                    MessageBox.Show("El apellido es obligatorio.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtApellido.Focus();
+                    return;
+                }
                 var prestamista = new PrestamistaPuente
                 {
                     Nombre = txtNombre.Text,

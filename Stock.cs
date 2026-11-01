@@ -115,6 +115,11 @@ namespace Diegod
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(txtProducto.Text)){
+                    MessageBox.Show("El producto es obligatorio.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtProducto.Focus();
+                    return;
+                }
                 StockPuente stock = new StockPuente
                 {
                     Producto = txtProducto.Text,
@@ -127,8 +132,8 @@ namespace Diegod
                     if (resultado > 0)
                     {
                         MessageBox.Show("Producto agregado con éxito.");
-                        LimpiarCampos();
                         Cargar();
+                        LimpiarCampos();
                     }
                     else
                     {
@@ -142,8 +147,8 @@ namespace Diegod
                     if (resultado > 0)
                     {
                         MessageBox.Show("Producto modificado con éxito.");
-                        LimpiarCampos();
                         Cargar();
+                        LimpiarCampos();
                     }
                     else
                     {
