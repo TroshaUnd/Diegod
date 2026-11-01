@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -88,7 +88,7 @@ namespace Diegod
             }
             else if (c is ComboBox cb)
             {
-                cb.FlatStyle = FlatStyle.Flat;
+                cb.FlatStyle = FlatStyle.Popup;
                 cb.BackColor = Color.White;
                 cb.ForeColor = Texto;
                 cb.Font = new Font("Segoe UI", 10.5F);

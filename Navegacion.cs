@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -9,7 +9,7 @@ namespace Diegod
     /// <summary>Menu lateral siempre visible y navegacion entre pantallas.</summary>
     internal static class Navegacion
     {
-        private const int AnchoBase = 190;
+        private const int AnchoBase = 160;
 
         [DllImport("user32.dll")] private static extern bool ReleaseCapture();
         [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr h, int msg, int w, int l);
@@ -50,6 +50,10 @@ namespace Diegod
 
             // 2) El formulario se ensancha para dar lugar al menu
             f.ClientSize = new Size(original.Width + ancho, original.Height);
+            f.StartPosition = FormStartPosition.Manual;
+            var area = Screen.PrimaryScreen.WorkingArea;
+            f.Location = new Point(Math.Max(area.Left, area.Left + (area.Width - f.Width) / 2),
+                                   Math.Max(area.Top, area.Top + (area.Height - f.Height) / 2));
 
             var nav = new Panel
             {
@@ -160,7 +164,10 @@ namespace Diegod
             Form nuevo = crear();
             if (nuevo.GetType() == actual.GetType()) { nuevo.Dispose(); return; }
             nuevo.StartPosition = FormStartPosition.Manual;
-            nuevo.Location = actual.Location;
+            var wa = Screen.FromControl(actual).WorkingArea;
+            nuevo.Location = new Point(
+                Math.Max(wa.Left, wa.Left + (wa.Width - nuevo.Width) / 2),
+                Math.Max(wa.Top, wa.Top + (wa.Height - nuevo.Height) / 2));
             if (actual is Menu)
             {
                 actual.Hide();
