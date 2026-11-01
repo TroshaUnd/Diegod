@@ -178,7 +178,7 @@ namespace Diegod
             return decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal d) ? d : (decimal?)null;
         }
 
-        internal static string Dinero(decimal v) => "$" + v.ToString("#,##0.##", new CultureInfo("es-AR"));
+        internal static string Dinero(decimal v) => (v < 0 ? "-$" : "$") + Math.Abs(v).ToString("#,##0.##", new CultureInfo("es-AR"));
 
         private void DGViewPagosPendientes_SelectionChanged(object sender, EventArgs e)
         {

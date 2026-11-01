@@ -50,6 +50,8 @@ namespace Diegod
 
             foreach (DataRow row in dt.Rows)
             {
+                if (row["Anulado"] is bool anulado && anulado)
+                    continue; // los pagos anulados no suman
                 var fp = row.Field<DateTime>("FechaPago");
                 if (fp.Month != m || fp.Year != y)
                     continue;
@@ -93,8 +95,9 @@ namespace Diegod
             // Actualizar en la BD
             HistorialFunciones.ModificarAnuladoHistorial(id, anulado);
 
-            // Repintar fila
+            // Repintar fila y recalcular los totales del mes
             DGViewHistorial.InvalidateRow(e.RowIndex);
+            ActualizarTotalesPorMes();
         }
 
         private void DGViewHistorial_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)

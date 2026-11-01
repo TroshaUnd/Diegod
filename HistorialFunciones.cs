@@ -161,7 +161,8 @@ FROM Historial h;
 
             var filas = dt.AsEnumerable()
                           .Where(r => r.Field<DateTime>("FechaPago").Month == mes &&
-                                      r.Field<DateTime>("FechaPago").Year == anio);
+                                      r.Field<DateTime>("FechaPago").Year == anio &&
+                                      !(r["Anulado"] is bool anul && anul));
 
             DataTable dtMes = filas.Any() ? filas.CopyToDataTable() : dt.Clone();
 
