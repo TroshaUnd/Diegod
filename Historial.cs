@@ -14,6 +14,11 @@ namespace Diegod
             Ayudas.Configurar(this);
             Load += Historial_Load;
 
+            bttnImprimirReporte.FlatStyle = FlatStyle.Flat;
+            bttnImprimirReporte.BackColor = Color.Orange;
+            bttnImprimirReporte.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            bttnImprimirReporte.Cursor = Cursors.Hand;
+
             // Configuro dtp para meses
             dtpFechaPagos.Format = DateTimePickerFormat.Custom;
             dtpFechaPagos.CustomFormat = "MMMM yyyy";

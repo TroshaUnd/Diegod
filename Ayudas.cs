@@ -38,24 +38,52 @@ namespace Diegod
 
         private static void Preparar(Control raiz)
         {
+            Preparar(raiz, raiz as Form);
+        }
+
+        private static void Preparar(Control raiz, Form forma)
+        {
             foreach (Control c in raiz.Controls)
             {
                 if (c is TextBox tb)
                 {
                     if (tb.Name.StartsWith("txtBuscar") && string.IsNullOrEmpty(tb.Text))
-                        tb.PlaceholderText = TextoAyuda(tb.Name);
+                        tb.PlaceholderText = TextoAyuda(tb.Name, forma);
                     if (tb.ReadOnly) tb.TabStop = false;
+                    if ((tb.Name == "txtId" || tb.Name == "txtID") && tb.ReadOnly && string.IsNullOrEmpty(tb.Text))
+                        tb.PlaceholderText = "ID";
+                }
+                else if (c is DataGridView dgv)
+                {
+                    PrepararGrilla(dgv);
                 }
                 else if (c is DateTimePicker dtp && dtp.Format == DateTimePickerFormat.Long)
                 {
                     dtp.Format = DateTimePickerFormat.Short;
                 }
-                if (c.HasChildren) Preparar(c);
+                if (c.HasChildren) Preparar(c, forma);
             }
         }
 
-        private static string TextoAyuda(string nombre)
+        private static void PrepararGrilla(DataGridView g)
         {
+            g.AllowUserToAddRows = false;
+            g.DataBindingComplete += (s, e) =>
+            {
+                foreach (DataGridViewColumn col in g.Columns)
+                {
+                    if (col.HeaderText.Contains("_"))
+                        col.HeaderText = col.HeaderText.Replace("_", " ");
+                    if (col.ValueType == typeof(DateTime))
+                        col.DefaultCellStyle.Format = "dd/MM/yyyy";
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                }
+            };
+        }
+
+        private static string TextoAyuda(string nombre, Form forma)
+        {
+            if (nombre == "txtBuscar" && forma is Stock) return "Producto";
             if (nombre.EndsWith("ID")) return "ID";
             if (nombre.Contains("Patente")) return "Patente";
             if (nombre.Contains("Proveedor")) return "Proveedor";
@@ -116,6 +144,7 @@ namespace Diegod
             {
                 if (!(c is TextBox || c is ComboBox || c is DateTimePicker || c is CheckBox)) continue;
                 if (EsBuscador(c) || !c.Visible || !c.Enabled) continue;
+                if (c is CheckBox && c != activo) continue; // las casillas se saltan con Enter
                 if (c is TextBox tx && (tx.ReadOnly || tx.Multiline)) continue;
                 entradas.Add(c);
             }

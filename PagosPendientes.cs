@@ -131,6 +131,15 @@ namespace Diegod
         // Gris = anulado | Verde = pagado completo | Rojo = vencido sin pagar | Dorado = pendiente
         private static void PintarFila(DataGridViewRow row)
         {
+            PintarFilaColor(row);
+            // La fila seleccionada se ve un poco mas oscura pero conserva su color
+            Color fondo = row.DefaultCellStyle.BackColor;
+            row.DefaultCellStyle.SelectionBackColor = ControlPaint.Dark(fondo, 0.05f);
+            row.DefaultCellStyle.SelectionForeColor = Color.Black;
+        }
+
+        private static void PintarFilaColor(DataGridViewRow row)
+        {
             if (row.Cells["Anulado"].Value is bool an && an)
             {
                 row.DefaultCellStyle.BackColor = Color.LightGray;

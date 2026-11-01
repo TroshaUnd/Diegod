@@ -271,14 +271,14 @@ namespace Diegod
 
         private void DGViewStock_SelectionChanged(object sender, EventArgs e)
         {
-            if (DGViewStock.CurrentRow != null)
+            if (DGViewStock.SelectedRows.Count > 0 && DGViewStock.CurrentRow != null)
                 txtProducto.Text = DGViewStock.CurrentRow.Cells["ID"].Value?.ToString();
         }
 
         private void DGViewProveedor_SelectionChanged(object sender, EventArgs e)
         {
             if (!chkIngreso.Checked) return;
-            if (DGViewProveedor.CurrentRow != null)
+            if (DGViewProveedor.SelectedRows.Count > 0 && DGViewProveedor.CurrentRow != null)
                 txtProveedor.Text = DGViewProveedor.CurrentRow.Cells["ID"].Value?.ToString();
         }
 
