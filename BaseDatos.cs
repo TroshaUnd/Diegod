@@ -73,6 +73,7 @@ namespace Diegod
                 using (var tran = cn.BeginTransaction())
                 {
                     Ejecutar(cn, tran, EsquemaSqlite.Tablas);
+                    MigrarEsquemaAnterior(cn, tran);
                     Ejecutar(cn, tran, EsquemaSqlite.Vistas);
                     Ejecutar(cn, tran, EsquemaSqlite.DatosIniciales);
                     CargarGeografia(cn, tran);
@@ -91,13 +92,54 @@ namespace Diegod
             }
         }
 
+        // Columnas agregadas despues de la primera version: se incorporan a bases ya existentes.
+        private static readonly (string Tabla, string Columna, string Definicion)[] ColumnasNuevas =
+        {
+            ("Usuario", "TipoUsuario_ID", "INT NOT NULL DEFAULT 1"),
+            ("MovimientoStock", "Fecha_Vencimiento", "DATETIME"),
+            ("Trabajos", "Fecha_Vencimiento", "DATETIME"),
+            ("Empleados_Trabajo", "Fecha_Vencimiento", "DATETIME"),
+        };
+
+        private static void MigrarEsquemaAnterior(SqliteConnection cn, SqliteTransaction tran)
+        {
+            foreach (var (tabla, columna, definicion) in ColumnasNuevas)
+            {
+                using (var existe = cn.CreateCommand())
+                {
+                    existe.Transaction = tran;
+                    existe.CommandText = "SELECT COUNT(*) FROM pragma_table_info('" + tabla + "') WHERE name = $c";
+                    existe.Parameters.AddWithValue("$c", columna);
+                    if (Convert.ToInt64(existe.ExecuteScalar()) > 0) continue;
+                }
+                Ejecutar(cn, tran, "ALTER TABLE " + tabla + " ADD COLUMN " + columna + " " + definicion);
+            }
+        }
+
+        private static long Contar(SqliteConnection cn, SqliteTransaction tran, string sql)
+        {
+            using (var cmd = cn.CreateCommand())
+            {
+                cmd.Transaction = tran;
+                cmd.CommandText = sql;
+                return Convert.ToInt64(cmd.ExecuteScalar());
+            }
+        }
+
         private static void CargarGeografia(SqliteConnection cn, SqliteTransaction tran)
         {
-            using (var cuenta = cn.CreateCommand())
+            long provincias = Contar(cn, tran, "SELECT COUNT(*) FROM Provincias");
+            if (provincias > 0)
             {
-                cuenta.Transaction = tran;
-                cuenta.CommandText = "SELECT COUNT(*) FROM Provincias";
-                if (Convert.ToInt64(cuenta.ExecuteScalar()) > 0) return;
+                // Base de una version anterior con pocas localidades: se reemplaza por la lista completa,
+                // pero solo si ningun registro ya cargado usa una localidad (para no romper referencias).
+                if (Contar(cn, tran, "SELECT COUNT(*) FROM Localidades") >= 2000) return;
+                long usadas = Contar(cn, tran,
+                    "SELECT (SELECT COUNT(*) FROM Clientes WHERE Localidad_ID IS NOT NULL)" +
+                    " + (SELECT COUNT(*) FROM Empleados WHERE Localidad_ID IS NOT NULL)" +
+                    " + (SELECT COUNT(*) FROM Proveedor WHERE Localidad_ID IS NOT NULL)");
+                if (usadas > 0) return;
+                Ejecutar(cn, tran, "DELETE FROM Localidades; DELETE FROM Provincias;");
             }
 
             // Provincias y localidades de la base original (recurso incrustado geografia.sql).
