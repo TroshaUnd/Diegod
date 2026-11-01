@@ -218,21 +218,52 @@ namespace Diegod
                     }
                 }
 
+                int stockId = Ayudas.IdInicial(txtProducto.Text) ?? 0;
+                int cantidad = 0;
+                if (!string.IsNullOrWhiteSpace(txtCantidad.Text))
+                {
+                    if (!int.TryParse(txtCantidad.Text.Trim(), out cantidad) || cantidad <= 0)
+                    {
+                        MessageBox.Show("La cantidad debe ser un número entero mayor a cero.", "Cantidad incorrecta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtCantidad.Focus();
+                        return;
+                    }
+                }
+                decimal precioUnit = 0m;
+                if (!esCambio && !string.IsNullOrWhiteSpace(txtPrecioUnitario.Text))
+                {
+                    decimal? pu = PagosPendientes.ParseMonto(txtPrecioUnitario.Text);
+                    if (!pu.HasValue || pu.Value < 0)
+                    {
+                        MessageBox.Show("Ingrese un precio válido (por ejemplo 1500).", "Precio incorrecto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtPrecioUnitario.Focus();
+                        return;
+                    }
+                    precioUnit = pu.Value;
+                }
+                if (!chkIngreso.Checked)
+                {
+                    int disponible = MovimientosStockFunciones.CantidadDisponible(stockId);
+                    if (cantidad > disponible)
+                    {
+                        MessageBox.Show("No hay stock suficiente para sacar " + cantidad + " unidad(es).\n\nDisponible: " + disponible,
+                                        "Stock insuficiente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtCantidad.Focus();
+                        return;
+                    }
+                }
+
                 var mov = new MovimientoStockPuente
                 {
-                    StockID = Ayudas.IdInicial(txtProducto.Text) ?? 0,
+                    StockID = stockId,
                     ProveedorID = (!esCambio && chkIngreso.Checked) ? Ayudas.IdInicial(txtProveedor.Text) : (int?)null,
                     Destino = (!esCambio && chkEgreso.Checked) ? txtDestino.Text : null,
                     FechaMovimiento = dtpFechaMovimiento.Value,
                     TipoMovimiento = chkIngreso.Checked,
-                    Cantidad = !string.IsNullOrWhiteSpace(txtCantidad.Text) ? int.Parse(txtCantidad.Text) : 0,
-                    PrecioUnitario = !esCambio && !string.IsNullOrWhiteSpace(txtPrecioUnitario.Text) ? decimal.Parse(txtPrecioUnitario.Text) : 0,
+                    Cantidad = cantidad,
+                    PrecioUnitario = precioUnit,
                     // Calcular PrecioTotal automáticamente
-                    PrecioTotal = !esCambio &&
-                                  !string.IsNullOrWhiteSpace(txtCantidad.Text) &&
-                                  !string.IsNullOrWhiteSpace(txtPrecioUnitario.Text)
-                                  ? int.Parse(txtCantidad.Text) * decimal.Parse(txtPrecioUnitario.Text)
-                                  : 0,
+                    PrecioTotal = esCambio ? 0m : cantidad * precioUnit,
                     Cambio = esCambio
                 };
 
@@ -379,11 +410,13 @@ namespace Diegod
             }
 
             // Intentar convertir precio unitario a decimal
-            if (!decimal.TryParse(txtPrecioUnitario.Text.Trim(), out decimal precioUnitario))
+            decimal? precioLeido = PagosPendientes.ParseMonto(txtPrecioUnitario.Text);
+            if (!precioLeido.HasValue)
             {
                 txtPrecioTotal.Text = string.Empty;
                 return;
             }
+            decimal precioUnitario = precioLeido.Value;
 
             // Calcular y mostrar resultado
             decimal total = cantidad * precioUnitario;

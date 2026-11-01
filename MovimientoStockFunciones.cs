@@ -278,7 +278,19 @@ namespace Diegod
             return nuevoMovimientoID;
         }
 
-        
+        /// <summary>Unidades disponibles de un producto (ingresos menos egresos, sin contar anulados).</summary>
+        public static int CantidadDisponible(int stockId)
+        {
+            using var cn = BaseDatos.ObtenerConexion();
+            if (cn.State != ConnectionState.Open) cn.Open();
+            using var cmd = new SqlCommand(
+                "SELECT IFNULL(SUM(CASE WHEN Tipo_Movimiento = 1 THEN Cantidad ELSE -Cantidad END), 0) " +
+                "FROM MovimientoStock WHERE Stock_ID = @id AND Anulado = 0", cn);
+            cmd.Parameters.AddWithValue("@id", stockId);
+            object r = cmd.ExecuteScalar();
+            return r == null || r == DBNull.Value ? 0 : Convert.ToInt32(r);
+        }
+
         public static DataTable RegistroProveedores()
         {
             var dt = new DataTable();
