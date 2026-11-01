@@ -104,7 +104,7 @@ namespace Diegod
         {
             if (e.RowIndex < 0) return;
             var row = DGViewPrestamista.Rows[e.RowIndex];
-            txtPrestamista.Text = row.Cells["ID"].Value?.ToString() ?? string.Empty;
+            txtPrestamista.Text = (Ayudas.Celda(row, "ID") + " - " + Ayudas.Celda(row, "Nombre") + " " + Ayudas.Celda(row, "Apellido")).Trim();
         }
 
         private void DGViewPrestamistas_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
@@ -176,7 +176,7 @@ namespace Diegod
         {
             try
             {
-                if (string.IsNullOrEmpty(txtPrestamista.Text))
+                if (Ayudas.IdInicial(txtPrestamista.Text) == null)
                 {
                     MessageBox.Show("Seleccione un prestamista.");
                     return;
@@ -197,7 +197,7 @@ namespace Diegod
 
                 var credito = new CreditoPuente
                 {
-                    Prestamista_ID = int.Parse(txtPrestamista.Text),
+                    Prestamista_ID = Ayudas.IdInicial(txtPrestamista.Text) ?? 0,
                     Monto_Credito = montoValido.Value,
                     Fecha_Credito = DateFechaCredito.Value,
                     Fecha_Vencimiento = DateFechaVencimiento.Value,

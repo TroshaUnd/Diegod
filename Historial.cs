@@ -54,9 +54,10 @@ namespace Diegod
                 if (fp.Month != m || fp.Year != y)
                     continue;
 
-                var montoStr = row["Monto"].ToString().Replace("$", "").Replace(",", "");
-                if (!decimal.TryParse(montoStr, out decimal monto))
+                decimal? montoLeido = PagosPendientes.ParseMonto(row["Monto"].ToString());
+                if (!montoLeido.HasValue)
                     continue;
+                decimal monto = montoLeido.Value;
 
                 var trans = row["Transaccion"].ToString();
                 if (trans == "Cobrar")
@@ -65,12 +66,12 @@ namespace Diegod
                     sumPagado += monto;
             }
 
-            lblCobrado.Text = sumCobrado.ToString("C0");
-            lblPagado.Text = sumPagado.ToString("C0");
+            lblCobrado.Text = PagosPendientes.Dinero(sumCobrado);
+            lblPagado.Text = PagosPendientes.Dinero(sumPagado);
 
             // TODO: Asegúrate de que lblTotal exista en el diseñador
             decimal total = sumCobrado - sumPagado;
-            lblTotal.Text = total.ToString("C0");
+            lblTotal.Text = PagosPendientes.Dinero(total);
         }
         private void CargarHistorial()
         {

@@ -102,7 +102,7 @@ SELECT
     ) AS Tipo,
     -- Fecha y Monto
     h.Fecha_Pago AS FechaPago,
-    '$' || fmt_n0(h.Monto) AS Monto,
+    fmt_pesos(h.Monto) AS Monto,
     -- Transacción
     CASE
       WHEN EXISTS(SELECT 1 FROM Pagos_Pendientes pp2 JOIN Trabajos t2 ON pp2.TrabajoID = t2.ID WHERE pp2.ID = h.Pendiente_ID) THEN 'Cobrar'
@@ -181,11 +181,10 @@ FROM Historial h;
 
             foreach (DataRow row in dtMes.Rows)
             {
-                string montoStr = row["Monto"].ToString()
-                    .Replace("$", "").Replace(".", "").Replace(",", "");
-
-                if (!decimal.TryParse(montoStr, out decimal monto))
+                decimal? montoLeido = PagosPendientes.ParseMonto(row["Monto"].ToString());
+                if (!montoLeido.HasValue)
                     continue;
+                decimal monto = montoLeido.Value;
 
                 string trans = row["Transaccion"].ToString();
 
@@ -276,11 +275,7 @@ FROM Historial h;
 
                         if (col == "Monto")
                         {
-                            string montoRaw = row["Monto"].ToString()
-                                .Replace("$", "").Replace(".", "").Replace(",", "");
-
-                            if (!decimal.TryParse(montoRaw, out decimal montoVal))
-                                montoVal = 0;
+                            decimal montoVal = PagosPendientes.ParseMonto(row["Monto"].ToString()) ?? 0m;
 
                             valor = montoVal.ToString("N0", new CultureInfo("es-AR"));
 

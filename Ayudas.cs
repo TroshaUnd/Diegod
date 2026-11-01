@@ -20,6 +20,24 @@ namespace Diegod
             Preparar(f);
         }
 
+        /// <summary>Lee el numero inicial de textos como "3 - Juan Perez". Devuelve null si no hay.</summary>
+        public static int? IdInicial(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return null;
+            int i = 0;
+            texto = texto.Trim();
+            while (i < texto.Length && char.IsDigit(texto[i])) i++;
+            return i > 0 && int.TryParse(texto.Substring(0, i), out int id) ? id : (int?)null;
+        }
+
+        /// <summary>Texto de una celda por nombre de columna; vacio si la columna no existe.</summary>
+        public static string Celda(DataGridViewRow fila, string columna)
+        {
+            return fila.DataGridView != null && fila.DataGridView.Columns.Contains(columna)
+                ? Convert.ToString(fila.Cells[columna].Value) ?? ""
+                : "";
+        }
+
         /// <summary>Vuelve al menu principal cerrando la pantalla actual.</summary>
         public static void Volver(Form f)
         {

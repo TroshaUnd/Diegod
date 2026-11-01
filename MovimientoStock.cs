@@ -188,6 +188,16 @@ namespace Diegod
                     MessageBox.Show("Seleccione un producto.");
                     return;
                 }
+                if (Ayudas.IdInicial(txtProducto.Text) == null)
+                {
+                    MessageBox.Show("Elija un producto de la lista de la derecha.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (chkIngreso.Checked && !chkCambio.Checked && Ayudas.IdInicial(txtProveedor.Text) == null)
+                {
+                    MessageBox.Show("Elija un proveedor de la lista.", "Falta un dato", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
                 bool esCambio = chkCambio.Checked;
                 if (!esCambio)
                 {
@@ -210,8 +220,8 @@ namespace Diegod
 
                 var mov = new MovimientoStockPuente
                 {
-                    StockID = int.Parse(txtProducto.Text),
-                    ProveedorID = (!esCambio && chkIngreso.Checked) ? int.Parse(txtProveedor.Text) : (int?)null,
+                    StockID = Ayudas.IdInicial(txtProducto.Text) ?? 0,
+                    ProveedorID = (!esCambio && chkIngreso.Checked) ? Ayudas.IdInicial(txtProveedor.Text) : (int?)null,
                     Destino = (!esCambio && chkEgreso.Checked) ? txtDestino.Text : null,
                     FechaMovimiento = dtpFechaMovimiento.Value,
                     TipoMovimiento = chkIngreso.Checked,
@@ -272,14 +282,14 @@ namespace Diegod
         private void DGViewStock_SelectionChanged(object sender, EventArgs e)
         {
             if (DGViewStock.SelectedRows.Count > 0 && DGViewStock.CurrentRow != null)
-                txtProducto.Text = DGViewStock.CurrentRow.Cells["ID"].Value?.ToString();
+                txtProducto.Text = (Ayudas.Celda(DGViewStock.CurrentRow, "ID") + " - " + Ayudas.Celda(DGViewStock.CurrentRow, "Producto")).Trim();
         }
 
         private void DGViewProveedor_SelectionChanged(object sender, EventArgs e)
         {
             if (!chkIngreso.Checked) return;
             if (DGViewProveedor.SelectedRows.Count > 0 && DGViewProveedor.CurrentRow != null)
-                txtProveedor.Text = DGViewProveedor.CurrentRow.Cells["ID"].Value?.ToString();
+                txtProveedor.Text = (Ayudas.Celda(DGViewProveedor.CurrentRow, "ID") + " - " + Ayudas.Celda(DGViewProveedor.CurrentRow, "Nombre") + " " + Ayudas.Celda(DGViewProveedor.CurrentRow, "Apellido")).Trim();
         }
 
         private void DGViewProveedor_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)

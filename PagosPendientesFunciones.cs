@@ -44,14 +44,14 @@ SELECT
         (SELECT t.Nombre   FROM MovimientoStock ms INNER JOIN Proveedor pr ON ms.Proveedor_ID = pr.ID INNER JOIN Tipo t ON pr.TipoId     = t.TipoId WHERE ms.ID        = pp.MovimientoStockID),
         (SELECT t.Nombre   FROM Credito c INNER JOIN Prestamista pt ON c.Prestamista_ID  = pt.ID INNER JOIN Tipo t ON pt.TipoId     = t.TipoId WHERE c.ID         = pp.CreditoID)
     )                     AS Tipo,
-    '$' || COALESCE(
+    fmt_pesos(COALESCE(
         (SELECT CAST(tr.Presupuesto   AS TEXT) FROM Trabajos        tr WHERE tr.ID        = pp.TrabajoID),
         (SELECT CAST(et.Valor_Trabajo AS TEXT) FROM Empleados_Trabajo et WHERE et.ID        = pp.EmpleadoTrabajoID),
         (SELECT fmt_txt(ms.Precio_Total) FROM MovimientoStock  ms WHERE ms.ID        = pp.MovimientoStockID),
         (SELECT fmt_txt(c.Monto_Credito) FROM Credito         c  WHERE c.ID        = pp.CreditoID),
         '0'
-    )                     AS Deuda,
-    '$' || fmt_txt(
+    ))                    AS Deuda,
+    fmt_pesos(
         IFNULL(
             (SELECT SUM(h.Monto)
                FROM Historial h

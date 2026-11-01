@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------
+﻿// ---------------------------------------------------------------------------
 //  Capa de compatibilidad: expone SqlConnection / SqlCommand / SqlDataAdapter /
 //  SqlDataReader (los mismos nombres y metodos que usaba System.Data.SqlClient)
 //  pero trabaja sobre SQLite embebido (Microsoft.Data.Sqlite).
@@ -418,7 +418,14 @@ namespace Diegod.Datos
             cn.CreateFunction("fmt_moneda", (object v) =>
             {
                 decimal? m = ADecimal(v);
-                return m.HasValue ? m.Value.ToString("C", EsAr) : null;
+                return m.HasValue ? "$" + m.Value.ToString("#,##0.##", EsAr) : null;
+            });
+
+            // fmt_pesos(x)   -> "$1.500" / "$1.500,5" (formato unico de dinero para todo el programa)
+            cn.CreateFunction("fmt_pesos", (object v) =>
+            {
+                decimal? m = ADecimal(v);
+                return "$" + (m ?? 0m).ToString("#,##0.##", EsAr);
             });
 
             // fmt_txt(x)     -> "1500" / "1500.5" (numero como texto, sin ceros sobrantes)

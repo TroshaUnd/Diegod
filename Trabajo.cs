@@ -539,6 +539,8 @@ namespace Diegod
             txtBuscarID.Clear();
             dtpBuscarFecha.Value = DateTime.Now;
             DGViewTrabajos.ClearSelection();
+            DGViewEmpleadosTrabajo.DataSource = null;
+            DGViewVehiculosTrabajo.DataSource = null;
         }
 
         private void DGViewClientes_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -591,11 +593,23 @@ namespace Diegod
                     txtTrabajoRealizar.Focus();
                     return;
                 }
+                string presupuestoTexto = "";
+                if (!string.IsNullOrWhiteSpace(txtPresupuesto.Text))
+                {
+                    decimal? presupuestoValido = PagosPendientes.ParseMonto(txtPresupuesto.Text);
+                    if (!presupuestoValido.HasValue || presupuestoValido.Value < 0)
+                    {
+                        MessageBox.Show("Ingrese un presupuesto válido (por ejemplo 50000).", "Presupuesto incorrecto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtPresupuesto.Focus();
+                        return;
+                    }
+                    presupuestoTexto = presupuestoValido.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                }
                 var trabajo = new TrabajoPuente
                 {
                     Fecha_Pedido = dtpFechaPedido.Value,
                     Trabajo_Realizar = txtTrabajoRealizar.Text,
-                    Presupuesto = txtPresupuesto.Text,
+                    Presupuesto = presupuestoTexto,
                     Observacion = txtObservacion.Text,
                     Completado = chkCompletado.Checked,
                     Lugar_Trabajo = txtLugarTrabajo.Text,
@@ -649,7 +663,18 @@ namespace Diegod
                 return;
             }
 
-            int valor = int.TryParse(txtValorEmpleado.Text, out var v) ? v : 0;
+            int valor = 0;
+            if (!string.IsNullOrWhiteSpace(txtValorEmpleado.Text))
+            {
+                decimal? valorLeido = PagosPendientes.ParseMonto(txtValorEmpleado.Text);
+                if (!valorLeido.HasValue || valorLeido.Value < 0)
+                {
+                    MessageBox.Show("Ingrese un valor válido (por ejemplo 2000).", "Valor incorrecto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtValorEmpleado.Focus();
+                    return;
+                }
+                valor = (int)Math.Round(valorLeido.Value);
+            }
             string obs = txtObservacionEmpleado.Text.Trim();
 
             try

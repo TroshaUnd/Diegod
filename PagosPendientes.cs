@@ -178,7 +178,7 @@ namespace Diegod
             return decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal d) ? d : (decimal?)null;
         }
 
-        private static string Dinero(decimal v) => "$" + v.ToString("#,##0.##", new CultureInfo("es-AR"));
+        internal static string Dinero(decimal v) => "$" + v.ToString("#,##0.##", new CultureInfo("es-AR"));
 
         private void DGViewPagosPendientes_SelectionChanged(object sender, EventArgs e)
         {
@@ -317,11 +317,14 @@ namespace Diegod
                     MessageBox.Show("ID de Pago inválido.");
                     return;
                 }
-                if (!decimal.TryParse(txtMonto.Text, out decimal monto) || monto <= 0)
+                decimal? montoLeido = ParseMonto(txtMonto.Text);
+                if (!montoLeido.HasValue || montoLeido.Value <= 0)
                 {
-                    MessageBox.Show("Monto inválido.");
+                    MessageBox.Show("Ingrese un monto válido mayor a cero (por ejemplo 5000).", "Monto incorrecto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtMonto.Focus();
                     return;
                 }
+                decimal monto = montoLeido.Value;
                 // Controlar contra lo que se debe / se tiene que cobrar
                 DataTable actual = PagosFunciones.RegistroPagosPendientes();
                 DataRow fila = actual.AsEnumerable().FirstOrDefault(r => r.Field<int>("ID") == pagoID);
@@ -353,7 +356,18 @@ namespace Diegod
                 DateTime fechaPago = DateFechaPago.Value;
                 if (PagosFunciones.AgregarHistorial(pagoID, fechaPago, monto) > 0)
                 {
-                    MessageBox.Show("Registro de historial agregado.");
+                    string detalle = "Pago registrado: " + Dinero(monto);
+                    if (fila != null)
+                    {
+                        decimal? d2 = ParseMonto(fila["Deuda"]?.ToString());
+                        decimal p2 = ParseMonto(fila["Pagado"]?.ToString()) ?? 0m;
+                        if (d2.HasValue && d2.Value > 0)
+                        {
+                            decimal resto = d2.Value - p2 - monto;
+                            detalle += resto <= 0 ? "\nLa deuda quedó completa." : "\nSaldo pendiente: " + Dinero(resto);
+                        }
+                    }
+                    MessageBox.Show(detalle, "Pago registrado", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     txtMonto.Clear();
                     // Recargar las tablas para que cambien los montos y los colores
                     _pagosTable = PagosFunciones.RegistroPagosPendientes();
