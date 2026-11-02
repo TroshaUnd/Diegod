@@ -17,15 +17,19 @@ namespace Diegod
         private static readonly (string Texto, Func<Form> Crear)[] Items =
         {
             ("Inicio", null),
+            ("#TRABAJO", null),
             ("Clientes", () => new Clientes()),
             ("Trabajos", () => new Trabajo()),
             ("Vehículos", () => new Vehiculo()),
             ("Empleados", () => new Empleados()),
+            ("#STOCK", null),
             ("Movimientos", () => new MovimientoStock()),
             ("Stock", () => new Stock()),
             ("Proveedores", () => new Proveedor()),
+            ("#PRÉSTAMOS", null),
             ("Crédito", () => new Credito()),
             ("Prestamista", () => new Prestamista()),
+            ("#PAGOS", null),
             ("Pagos pendientes", () => new PagosPendientes()),
             ("Historial", () => new Historial()),
         };
@@ -79,10 +83,25 @@ namespace Diegod
             Arrastrable(f, marca);
 
             int y = f.LogicalToDeviceUnits(64);
-            int alto = f.LogicalToDeviceUnits(40);
-            int pasos = f.LogicalToDeviceUnits(2);
+            int alto = f.LogicalToDeviceUnits(32);
+            int pasos = f.LogicalToDeviceUnits(1);
             foreach (var it in Items)
             {
+                if (it.Texto.StartsWith("#"))
+                {
+                    y += f.LogicalToDeviceUnits(6);
+                    nav.Controls.Add(new Label
+                    {
+                        Text = it.Texto.Substring(1),
+                        Font = new Font("Segoe UI Semibold", 8F),
+                        ForeColor = Color.FromArgb(156, 163, 175),
+                        BackColor = Color.Transparent,
+                        Location = new Point(f.LogicalToDeviceUnits(18), y),
+                        Size = new Size(ancho - f.LogicalToDeviceUnits(30), f.LogicalToDeviceUnits(18))
+                    });
+                    y += f.LogicalToDeviceUnits(20);
+                    continue;
+                }
                 bool activo = EsActual(f, it.Texto);
                 var b = new Button
                 {
