@@ -1,4 +1,4 @@
-; Instalador de Diegod (Inno Setup 6). Requiere haber ejecutado antes la publicacion:
+﻿; Instalador de Diegod (Inno Setup 6). Requiere haber ejecutado antes la publicacion:
 ;   dotnet publish Diegod.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publicar/win-x64
 #define AppName "Diegod"
 #define AppVersion "1.0.0"
@@ -28,6 +28,7 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "borrardatos"; Description: "Instalación limpia: BORRAR todos los datos guardados (clientes, stock, usuarios, etc.)"; GroupDescription: "Datos:"; Flags: unchecked
 
 [Files]
 Source: "..\publicar\win-x64\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -40,3 +41,10 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 
 ; Los datos viven en %LocalAppData%\Diegod\diegod.db y NO se borran al desinstalar.
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssInstall) and WizardIsTaskSelected('borrardatos') then
+    DelTree(ExpandConstant('{localappdata}\Diegod'), True, True, True);
+end;

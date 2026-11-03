@@ -20,7 +20,7 @@ Ahora es un programa **autónomo**:
 
 | Dato | Valor |
 |---|---|
-| Usuario inicial | `Programador` (el de tu base anterior) |
+| Usuario inicial | `admin` / `admin` (genérico: al entrar pide crear tu propia cuenta) |
 | Contraseña inicial | `123456789` |
 | Base de datos | `%LocalAppData%\Diegod\diegod.db` |
 | Registro de errores | `%LocalAppData%\Diegod\errores.log` |

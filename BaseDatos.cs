@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Diegod.Datos;
 using Microsoft.Data.Sqlite;
@@ -96,6 +96,8 @@ namespace Diegod
         private static readonly (string Tabla, string Columna, string Definicion)[] ColumnasNuevas =
         {
             ("Usuario", "TipoUsuario_ID", "INT NOT NULL DEFAULT 1"),
+            ("Usuario", "Correo", "TEXT"),
+            ("Usuario", "Generico", "INT NOT NULL DEFAULT 0"),
             ("MovimientoStock", "Fecha_Vencimiento", "DATETIME"),
             ("Trabajos", "Fecha_Vencimiento", "DATETIME"),
             ("Empleados_Trabajo", "Fecha_Vencimiento", "DATETIME"),

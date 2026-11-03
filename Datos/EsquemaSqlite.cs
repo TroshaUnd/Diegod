@@ -1,4 +1,4 @@
-// Esquema de la base SQLite. Reproduce las tablas y vistas que la aplicacion
+﻿// Esquema de la base SQLite. Reproduce las tablas y vistas que la aplicacion
 // usaba en SQL Server ("Principal"), deducidas de todas las consultas del codigo.
 //
 // Tipos declarados con significado para la capa de compatibilidad (SqlCompat.cs):
@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS Usuario (
     Id             INTEGER PRIMARY KEY AUTOINCREMENT,
     TipoUsuario_ID INT NOT NULL DEFAULT 1,
     Usuario        TEXT NOT NULL,
-    Contra         TEXT NOT NULL
+    Contra         TEXT NOT NULL,
+    Correo         TEXT,
+    Generico       INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS Tipo (
@@ -224,8 +226,8 @@ INSERT INTO Tipo_Usuario (ID, Tipo)
 SELECT 1, 'Admin'
 WHERE NOT EXISTS (SELECT 1 FROM Tipo_Usuario);
 
-INSERT INTO Usuario (TipoUsuario_ID, Usuario, Contra)
-SELECT 1, 'Programador', '123456789'
+INSERT INTO Usuario (TipoUsuario_ID, Usuario, Contra, Generico)
+SELECT 1, 'admin', 'admin', 1
 WHERE NOT EXISTS (SELECT 1 FROM Usuario);
 """;
     }

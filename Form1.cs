@@ -31,23 +31,39 @@ namespace Diegod
             {
                 using (SqlConnection conexion = BaseDatos.ObtenerConexion())
                 {
-                    string consulta = "SELECT * FROM Usuario WHERE Usuario = @usuario AND Contra = @contra";
+                    string consulta = "SELECT Contra, Generico FROM Usuario WHERE Usuario = @usuario";
                     using (SqlCommand comando = new SqlCommand(consulta, conexion))
                     {
-                        comando.Parameters.AddWithValue("@usuario", TxtUsuario.Text);
-                        comando.Parameters.AddWithValue("@contra", TxtContra.Text);
+                        comando.Parameters.AddWithValue("@usuario", TxtUsuario.Text.Trim());
 
+                        bool acceso = false, generico = false;
                         using (SqlDataReader lector = comando.ExecuteReader())
                         {
-                            if (lector.HasRows)
+                            while (lector.Read())
                             {
-                                Menu.Mostrar();
-                                this.Hide();
+                                if (Seguridad.Verificar(TxtContra.Text, Convert.ToString(lector["Contra"])))
+                                {
+                                    acceso = true;
+                                    generico = Convert.ToInt32(lector["Generico"]) == 1;
+                                    break;
+                                }
                             }
-                            else
-                            {
-                                MessageBox.Show("Contraseña Incorrecta");
-                            }
+                        }
+
+                        if (!acceso)
+                        {
+                            MessageBox.Show("Usuario o contraseña incorrectos");
+                        }
+                        else if (generico)
+                        {
+                            // Primer ingreso con el usuario genérico: hay que crear la cuenta propia
+                            new CrearUsuario().Show();
+                            this.Hide();
+                        }
+                        else
+                        {
+                            Menu.Mostrar();
+                            this.Hide();
                         }
                     }
                 }
