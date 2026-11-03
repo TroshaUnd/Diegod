@@ -15,7 +15,7 @@ namespace Diegod
             Load += Historial_Load;
 
             bttnImprimirReporte.FlatStyle = FlatStyle.Flat;
-            bttnImprimirReporte.BackColor = Tema.Acento; bttnImprimirReporte.ForeColor = Tema.Texto;
+            bttnImprimirReporte.BackColor = Color.Orange;
             bttnImprimirReporte.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             bttnImprimirReporte.Cursor = Cursors.Hand;
 
@@ -104,9 +104,9 @@ namespace Diegod
         {
             var row = DGViewHistorial.Rows[e.RowIndex];
             if (row.Cells["Anulado"].Value is bool an && an)
-                row.DefaultCellStyle.BackColor = Tema.FilaInactiva;
+                row.DefaultCellStyle.BackColor = Color.LightGray;
             else
-                row.DefaultCellStyle.BackColor = Tema.FilaNormal;
+                row.DefaultCellStyle.BackColor = Color.Gold;
         }
         private void BttnLimpiar_Click(object sender, EventArgs e)
         {

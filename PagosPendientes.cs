@@ -135,14 +135,14 @@ namespace Diegod
             // La fila seleccionada se ve un poco mas oscura pero conserva su color
             Color fondo = row.DefaultCellStyle.BackColor;
             row.DefaultCellStyle.SelectionBackColor = ControlPaint.Dark(fondo, 0.05f);
-            row.DefaultCellStyle.SelectionForeColor = Tema.Texto;
+            row.DefaultCellStyle.SelectionForeColor = Color.Black;
         }
 
         private static void PintarFilaColor(DataGridViewRow row)
         {
             if (row.Cells["Anulado"].Value is bool an && an)
             {
-                row.DefaultCellStyle.BackColor = Tema.FilaInactiva;
+                row.DefaultCellStyle.BackColor = Color.LightGray;
                 return;
             }
 
@@ -150,17 +150,17 @@ namespace Diegod
             decimal? pagado = ParseMonto(row.Cells["Pagado"].Value?.ToString());
             if (deuda.HasValue && pagado.HasValue && pagado.Value >= deuda.Value)
             {
-                row.DefaultCellStyle.BackColor = Tema.FilaOk;
+                row.DefaultCellStyle.BackColor = Color.LightGreen;
                 return;
             }
 
             if (row.Cells["Fecha_Vencimiento"].Value is DateTime venc && venc.Date < DateTime.Today)
             {
-                row.DefaultCellStyle.BackColor = Tema.FilaAlerta;
+                row.DefaultCellStyle.BackColor = Color.Tomato;
                 return;
             }
 
-            row.DefaultCellStyle.BackColor = Tema.AcentoSuave;
+            row.DefaultCellStyle.BackColor = Color.Gold;
         }
 
         /// <summary>Convierte textos como "$150.000", "$1500.5" o "$2000" en numero. Null si no se entiende.</summary>
